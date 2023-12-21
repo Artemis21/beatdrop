@@ -1,0 +1,23 @@
+{
+  "name": "beatdrop",
+  "license": "MIT",
+  "source": "web/index.pug",
+  "targets": {
+    "default": {
+      "publicUrl": "/static"
+    }
+  },
+  "browserslist": "> 0.5%, last 2 versions, not dead",
+  "devDependencies": {
+    "@parcel/transformer-pug": "2.10.3",
+    "@parcel/transformer-sass": "2.10.3",
+    "bun-types": "latest",
+    "parcel": "^2.10.3",
+    "process": "^0.11.10",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.0.1"
+  }
+}
