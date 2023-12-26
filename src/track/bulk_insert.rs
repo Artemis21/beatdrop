@@ -55,7 +55,7 @@ impl<'a> BulkInserter<'a> {
         }
         let album = deezer::album(album.id).await?;
         insert::album(&mut *self.db, &album).await?;
-        for genre in &album.genres {
+        for genre in &*album.genres {
             self.insert_genre(genre).await?;
             insert::album_genre(&mut *self.db, album.id, genre.id).await?;
         }
@@ -71,7 +71,7 @@ impl<'a> BulkInserter<'a> {
         let exists = sqlx::query_scalar!(
             "SELECT 1 FROM album WHERE id = $1",
             i32::from(album_id),
-        ).fetch_optional(&mut *self.db).await.wrap_err("querying if album exists")?;
+        ).fetch_optional(&mut *self.db).await.wrap_err("error querying if album exists")?;
         Ok(exists.is_some())
     }
 

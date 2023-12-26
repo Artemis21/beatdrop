@@ -46,7 +46,7 @@ impl User {
         )
         .fetch_one(db)
         .await
-        .wrap_err("inserting new user account")?;
+        .wrap_err("error inserting new user account")?;
         let login_bytes = user
             .id
             .to_be_bytes()

@@ -101,7 +101,7 @@ impl Row {
             self.id,
         )
         .fetch_all(db)
-        .await.wrap_err("querying game guesses")?;
+        .await.wrap_err("error querying game guesses")?;
         Ok(Game {
             game: self,
             guesses,
@@ -148,7 +148,7 @@ impl Game {
             i32::try_from(self.guesses.len()).expect("guess count to fit in i32"),
         )
         .fetch_one(db)
-        .await.wrap_err("inserting game guess")?;
+        .await.wrap_err("error inserting game guess")?;
         self.guesses.push(guess);
         Ok(())
     }
@@ -197,7 +197,7 @@ impl Game {
         sqlx::query!("UPDATE game SET won = $1 WHERE id = $2", won, self.id,)
             .execute(db)
             .await
-            .wrap_err("setting game win state")?;
+            .wrap_err("error setting game win state")?;
         self.won = Some(won);
         Ok(())
     }
@@ -245,7 +245,7 @@ impl User {
         )
         .fetch_optional(&mut *db)
         .await
-        .wrap_err("querying current game")?;
+        .wrap_err("error querying current game")?;
         match game {
             Some(game) => {
                 let mut game = game.with_guesses(db).await?;
@@ -267,7 +267,7 @@ impl User {
         )
         .fetch_optional(&mut *db)
         .await
-        .wrap_err("querying daily game")?;
+        .wrap_err("error querying daily game")?;
         match game {
             Some(game) => {
                 let mut game = game.with_guesses(db).await?;

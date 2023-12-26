@@ -17,7 +17,7 @@ pub async fn genre(db: &mut DbConn, id: deezer::Id) -> Result<deezer::Genre, Err
         "SELECT id, title AS name, picture_url AS picture FROM genre
         WHERE id = $1",
         i32::from(id),
-    ).fetch_one(db).await.wrap_err("querying genre")?;
+    ).fetch_one(db).await.wrap_err("error querying genre")?;
     Ok(genre)
 }
 
@@ -31,9 +31,9 @@ pub async fn clip(
     let preview_url = sqlx::query_scalar!(
         "SELECT preview_url FROM track WHERE id = $1",
         i32::from(track_id),
-    ).fetch_one(db).await.wrap_err("querying track preview URL")?;
+    ).fetch_one(db).await.wrap_err("error querying track preview URL")?;
     music::clip(config, track_id.0, &preview_url, seconds).await
-        .wrap_err("clipping music")
+        .wrap_err("error clipping music")
 }
 
 /// Track metadata returned as part of game objects in the API.
@@ -72,7 +72,7 @@ impl Meta {
             i32::from(id),
         )
         .fetch_one(db)
-        .await.wrap_err("querying track metadata")?;
+        .await.wrap_err("error querying track metadata")?;
         Ok(track)
     }
 }

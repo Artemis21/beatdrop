@@ -22,23 +22,23 @@ impl From<&crate::Config> for Config {
 /// Transcode a downloaded track from MP3 to WAV, and save it (blocking).
 fn blocking_save_track(path: std::path::PathBuf, mp3_data: Vec<u8>) -> Result<(), Error> {
     let (mp3_header, samples) =
-        puremp3::read_mp3(std::io::Cursor::new(mp3_data)).wrap_err("parsing a downloaded MP3")?;
+        puremp3::read_mp3(std::io::Cursor::new(mp3_data)).wrap_err("error parsing a downloaded MP3")?;
     let wav_spec = hound::WavSpec {
         channels: 2,
         sample_rate: mp3_header.sample_rate.hz(),
         bits_per_sample: 32,
         sample_format: hound::SampleFormat::Float,
     };
-    let file = std::fs::File::create(path).wrap_err("creating a file for decoded music")?;
+    let file = std::fs::File::create(path).wrap_err("error creating a file for decoded music")?;
     let mut writer = hound::WavWriter::new(std::io::BufWriter::new(file), wav_spec)
-        .wrap_err("creating a WAV writer")?;
+        .wrap_err("error creating a WAV writer")?;
     for (left, right) in samples {
         writer
             .write_sample(left)
-            .wrap_err("writing a (left) sample to a WAV file")?;
+            .wrap_err("error writing a (left) sample to a WAV file")?;
         writer
             .write_sample(right)
-            .wrap_err("writing a (right) sample to a WAV file")?;
+            .wrap_err("error writing a (right) sample to a WAV file")?;
     }
     writer.finalize()?;
     Ok(())
@@ -50,11 +50,11 @@ async fn download_track(config: &Config, track_id: u32, preview: &str) -> Result
         .get(preview)
         .send()
         .await
-        .wrap_err("downloading a track preview")?;
+        .wrap_err("error downloading a track preview")?;
     let data = response
         .bytes()
         .await
-        .wrap_err("reading the response for a track preview download")?
+        .wrap_err("error reading the response for a track preview download")?
         .to_vec();
     let path = config.music_dir.join(format!("{}.mp3", track_id));
     tokio::task::spawn_blocking(move || blocking_save_track(path, data)).await?
@@ -69,7 +69,7 @@ async fn ensure_cached(
     let path = config.music_dir.join(format!("{}.mp3", track_id));
     if tokio::fs::try_exists(&path)
         .await
-        .wrap_err("checking if a track is cached")?
+        .wrap_err("error checking if a track is cached")?
     {
         download_track(config, track_id, preview).await?;
     }
@@ -78,14 +78,14 @@ async fn ensure_cached(
 
 /// Get a clip from a track (blocking).
 fn blocking_clip_track(path: std::path::PathBuf, seconds: Range<u32>) -> Result<Vec<u8>, Error> {
-    let mut reader = hound::WavReader::open(path).wrap_err("opening a cached track")?;
+    let mut reader = hound::WavReader::open(path).wrap_err("error opening a cached track")?;
     let spec = reader.spec();
     reader
         .seek(spec.sample_rate * seconds.start)
-        .wrap_err("seeking within a cached track")?;
+        .wrap_err("error seeking within a cached track")?;
     let mut buf = Vec::new();
     let cursor = std::io::Cursor::new(&mut buf);
-    let mut writer = hound::WavWriter::new(cursor, spec).wrap_err("creating a WAV writer")?;
+    let mut writer = hound::WavWriter::new(cursor, spec).wrap_err("error creating a WAV writer")?;
     for _ in 0..(spec.sample_rate * (seconds.end - seconds.start)) {
         let left = reader
             .samples::<f32>()
@@ -97,10 +97,10 @@ fn blocking_clip_track(path: std::path::PathBuf, seconds: Range<u32>) -> Result<
             .ok_or_eyre("could not read sample from track")??;
         writer
             .write_sample(left)
-            .wrap_err("writing a (left) sample to a WAV file")?;
+            .wrap_err("error writing a (left) sample to a WAV file")?;
         writer
             .write_sample(right)
-            .wrap_err("writing a (right) sample to a WAV file")?;
+            .wrap_err("error writing a (right) sample to a WAV file")?;
     }
     writer.finalize()?;
     Ok(buf)

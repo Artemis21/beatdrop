@@ -24,7 +24,7 @@ pub async fn track(db: &mut DbConn, track: &Track) -> Result<(), Error> {
         track.rank,
         i32::from(track.album.id),
         i32::from(track.artist.id),
-    ).execute(db).await.wrap_err("inserting track")?;
+    ).execute(db).await.wrap_err("error inserting track")?;
     Ok(())
 }
 
@@ -42,7 +42,7 @@ pub async fn album(db: &mut DbConn, album: &Album) -> Result<(), Error> {
         album.cover,
     )
     .execute(db)
-    .await.wrap_err("inserting album")?;
+    .await.wrap_err("error inserting album")?;
     Ok(())
 }
 
@@ -58,7 +58,7 @@ pub async fn genre(db: &mut DbConn, genre: &Genre) -> Result<(), Error> {
         genre.picture,
     )
     .execute(db)
-    .await.wrap_err("inserting genre")?;
+    .await.wrap_err("error inserting genre")?;
     Ok(())
 }
 
@@ -74,7 +74,7 @@ pub async fn album_genre(db: &mut DbConn, album_id: deezer::Id, genre_id: deezer
         i32::from(genre_id),
     )
     .execute(db)
-    .await.wrap_err("inserting album-genre relationship")?;
+    .await.wrap_err("error inserting album-genre relationship")?;
     Ok(())
 }
 
@@ -92,6 +92,6 @@ pub async fn artist(db: &mut DbConn, artist: &Artist) -> Result<(), Error> {
         artist.picture,
     )
     .execute(db)
-    .await.wrap_err("inserting artist")?;
+    .await.wrap_err("error inserting artist")?;
     Ok(())
 }

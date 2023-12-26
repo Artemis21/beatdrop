@@ -20,10 +20,10 @@ pub async fn chart(genre_id: Id) -> Result<Vec<Track>, Error> {
         .get(&url)
         .send()
         .await
-        .wrap_err("fetching genre chart")?
+        .wrap_err("error fetching genre chart")?
         .json()
         .await
-        .wrap_err("deserialising genre chart")?;
+        .wrap_err("error deserialising genre chart")?;
     Ok(data.data)
 }
 
@@ -36,10 +36,10 @@ pub async fn genres() -> Result<Vec<Genre>, Error> {
         .get(&url)
         .send()
         .await
-        .wrap_err("fetching genre list")?
+        .wrap_err("error fetching genre list")?
         .json()
         .await
-        .wrap_err("deserialising genre list")?;
+        .wrap_err("error deserialising genre list")?;
     Ok(data.data)
 }
 
@@ -51,21 +51,21 @@ pub async fn genres() -> Result<Vec<Genre>, Error> {
 /// for another reason.
 pub async fn album(album_id: Id) -> Result<Album, Error> {
     let url = format!("{API_URL}/album/{id}", id = album_id);
-    let data: DataWrap<_> = CLIENT
+    let data = CLIENT
         .get(&url)
         .send()
         .await
-        .wrap_err("fetching album")?
+        .wrap_err("error fetching album")?
         .json()
         .await
-        .wrap_err("deserialising album")?;
-    Ok(data.data)
+        .wrap_err("error deserialising album")?;
+    Ok(data)
 }
 
 /// A helper for serde deserialisation of API responses which are wrapped in
 /// an object with a single `data` field.
 #[derive(Debug, Deserialize)]
-struct DataWrap<T> {
+pub struct DataWrap<T> {
     /// The actual data.
     data: T,
 }
@@ -138,7 +138,7 @@ pub struct Album {
     /// Link to the album on Deezer
     pub link: String,
     /// A list of genres associated with the album
-    pub genres: Vec<Genre>,
+    pub genres: DataWrap<Vec<Genre>>,
 }
 
 /// A wrapper around a Deezer ID.
@@ -148,3 +148,11 @@ pub struct Album {
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, Deserialize, Serialize)]
 #[serde(transparent)]
 pub struct Id(pub u32);
+
+impl<T> std::ops::Deref for DataWrap<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.data
+    }
+}
