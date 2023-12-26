@@ -1,4 +1,4 @@
-use crate::{DbConn, Error, database};
+use crate::{DbConn, Error, ResultExt, database};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Utc};
 use hmac::{Hmac, Mac};
@@ -45,7 +45,8 @@ impl User {
             &secret_hash
         )
         .fetch_one(db)
-        .await?;
+        .await
+        .wrap_err("inserting new user account")?;
         let login_bytes = user
             .id
             .to_be_bytes()

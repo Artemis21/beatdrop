@@ -2,6 +2,7 @@ import useSWR from "swr";
 import { fetcher, newGame } from "../fetcher";
 import { useNavigate, Link } from "react-router-dom";
 import { Error, Loading } from "./Placeholder";
+import { Nav } from "./Nav";
 
 export function Start() {
     const { data: game, isLoading: gameIsLoading, error: gameError } = useSWR("/game", fetcher);
@@ -10,16 +11,20 @@ export function Start() {
     if (dailyError) return <Error error={dailyError} />;
     if (gameIsLoading) return <Loading />;
     if (dailyIsLoading) return <Loading />;
-    if (game !== null && game.won === null) {
-        return <div className="start_buttons"><ResumeButton /></div>;
-    }
     const buttons = [];
-    if (dailyGame === null) {
-        buttons.push(<DailyButton key="daily" />);
+    if (game !== null && game.won === null) {
+        buttons.push(<ResumeButton key="resume" />);
+    } else {
+        if (dailyGame === null) {
+            buttons.push(<DailyButton key="daily" />);
+        }
+        buttons.push(<UnlimitedButton key="unlimited" />);
+        buttons.push(<TimedButton key="timed" />);
     }
-    buttons.push(<UnlimitedButton key="unlimited" />);
-    buttons.push(<TimedButton key="timed" />);
-    return <div className="start_buttons">{buttons}</div>;
+    return <>
+        <Nav />
+        <div className="start_buttons">{buttons}</div>
+    </>;
 }
 
 function ResumeButton() {

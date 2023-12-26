@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use eyre::Context;
 use rocket::{
     http,
     outcome::try_outcome,
@@ -100,7 +101,7 @@ impl Row {
             self.id,
         )
         .fetch_all(db)
-        .await?;
+        .await.wrap_err("querying game guesses")?;
         Ok(Game {
             game: self,
             guesses,
@@ -147,7 +148,7 @@ impl Game {
             i32::try_from(self.guesses.len()).expect("guess count to fit in i32"),
         )
         .fetch_one(db)
-        .await?;
+        .await.wrap_err("inserting game guess")?;
         self.guesses.push(guess);
         Ok(())
     }
@@ -195,7 +196,8 @@ impl Game {
     async fn set_won(&mut self, db: &mut DbConn, won: bool) -> Result<(), Error> {
         sqlx::query!("UPDATE game SET won = $1 WHERE id = $2", won, self.id,)
             .execute(db)
-            .await?;
+            .await
+            .wrap_err("setting game win state")?;
         self.won = Some(won);
         Ok(())
     }
@@ -242,7 +244,8 @@ impl User {
             self.id,
         )
         .fetch_optional(&mut *db)
-        .await?;
+        .await
+        .wrap_err("querying current game")?;
         match game {
             Some(game) => {
                 let mut game = game.with_guesses(db).await?;
@@ -263,7 +266,8 @@ impl User {
             self.id,
         )
         .fetch_optional(&mut *db)
-        .await?;
+        .await
+        .wrap_err("querying daily game")?;
         match game {
             Some(game) => {
                 let mut game = game.with_guesses(db).await?;

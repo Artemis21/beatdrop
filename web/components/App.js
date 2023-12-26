@@ -1,6 +1,5 @@
 import { StrictMode } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { Nav } from "./Nav";
 import { Start } from "./Start";
 import { Game } from "./Game";
 
@@ -16,7 +15,6 @@ export function App() {
         },
     ]);
     return <StrictMode>
-        <Nav />
         <RouterProvider router={router} />
     </StrictMode>;
 }

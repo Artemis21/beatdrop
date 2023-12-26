@@ -1,6 +1,6 @@
 //! Procedures to pick a track for a new game.
-use crate::{DbConn, Error, deezer};
 use super::bulk_insert::BulkInserter as BulkTrackInserter;
+use crate::{deezer, DbConn, Error, ResultExt};
 
 /// Pick any track from the database, preferring more popular tracks.
 ///
@@ -9,8 +9,13 @@ pub async fn any(db: &mut DbConn) -> Result<deezer::Id, Error> {
     if let Some(track) = try_pick_any(db).await? {
         return Ok(track);
     }
-    refresh_all(db).await?;
-    if let Some(track) = try_pick_any(db).await? {
+    refresh_all(db)
+        .await
+        .wrap_err("fetching new tracks for the database")?;
+    if let Some(track) = try_pick_any(db)
+        .await
+        .wrap_err("trying to find any track in the database, right after refresh")?
+    {
         return Ok(track);
     }
     Err(Error::NotFound("no appropriate track found"))
@@ -24,29 +29,35 @@ async fn try_pick_any(db: &mut DbConn) -> Result<Option<deezer::Id>, Error> {
         LIMIT 1",
     )
     .fetch_optional(db)
-    .await?;
+    .await
+    .wrap_err("querying for a random track")?;
     Ok(track.map(From::from))
 }
 
 /// Pick a track from the specified genre, preferring more popular tracks.
 ///
 /// If no tracks are available, get fresh data and try again.
-pub async fn genre(
-    db: &mut DbConn,
-    genre_id: deezer::Id,
-) -> Result<deezer::Id, Error> {
+pub async fn genre(db: &mut DbConn, genre_id: deezer::Id) -> Result<deezer::Id, Error> {
     if let Some(track) = try_pick_genre(db, genre_id).await? {
         return Ok(track);
     }
     refresh_genre(db, genre_id).await?;
-    if let Some(track) = try_pick_genre(db, genre_id).await? {
+    if let Some(track) = try_pick_genre(db, genre_id)
+        .await
+        .wrap_err("trying to find a track in the specified genre, right after refresh")?
+    {
         return Ok(track);
     }
-    Err(Error::NotFound("no appropriate track found in the specified genre"))
+    Err(Error::NotFound(
+        "no appropriate track found in the specified genre",
+    ))
 }
 
 /// Pick a track from the specified genre, preferring more popular tracks.
-async fn try_pick_genre(db: &mut DbConn, genre_id: deezer::Id) -> Result<Option<deezer::Id>, Error> {
+async fn try_pick_genre(
+    db: &mut DbConn,
+    genre_id: deezer::Id,
+) -> Result<Option<deezer::Id>, Error> {
     let track = sqlx::query_scalar!(
         "SELECT track.id FROM track
         INNER JOIN album ON track.album_id = album.id
@@ -57,7 +68,7 @@ async fn try_pick_genre(db: &mut DbConn, genre_id: deezer::Id) -> Result<Option<
         i32::from(genre_id)
     )
     .fetch_optional(db)
-    .await?;
+    .await.wrap_err("querying for a random track in the specified genre")?;
     Ok(track.map(From::from))
 }
 
@@ -66,7 +77,9 @@ pub async fn daily(db: &mut DbConn) -> Result<deezer::Id, Error> {
     let track = sqlx::query_scalar!(
         "SELECT track_id FROM daily_track
         WHERE for_day = TIMEZONE('utc', NOW())::DATE"
-    ).fetch_optional(&mut *db).await?;
+    )
+    .fetch_optional(&mut *db)
+    .await.wrap_err("querying for the daily track")?;
     if let Some(track) = track {
         return Ok(track.into());
     }
@@ -76,7 +89,7 @@ pub async fn daily(db: &mut DbConn) -> Result<deezer::Id, Error> {
         i32::from(track)
     )
     .execute(db)
-    .await?;
+    .await.wrap_err("inserting the daily track")?;
     Ok(track)
 }
 
@@ -106,7 +119,7 @@ async fn try_pick_daily(db: &mut DbConn) -> Result<Option<deezer::Id>, Error> {
         LIMIT 1",
     )
     .fetch_optional(db)
-    .await?;
+    .await.wrap_err("querying for a random track for today's daily")?;
     Ok(track.map(From::from))
 }
 
@@ -124,10 +137,7 @@ async fn refresh_all(db: &mut DbConn) -> Result<(), Error> {
 }
 
 /// Refresh the database with fresh data in the specified genre from Deezer.
-async fn refresh_genre(
-    db: &mut DbConn,
-    genre_id: deezer::Id,
-) -> Result<(), Error> {
+async fn refresh_genre(db: &mut DbConn, genre_id: deezer::Id) -> Result<(), Error> {
     let chart = deezer::chart(genre_id).await?;
     let mut inserter = BulkTrackInserter::new(db);
     for track in chart {

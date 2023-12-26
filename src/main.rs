@@ -30,7 +30,7 @@ mod web;
 
 use user::{AuthConfig, User};
 use game::Game;
-use errors::Error;
+use errors::{Error, ResultExt};
 use database::{Db, DbConn};
 
 /// Read config, set up the database and build the Rocket instance.

@@ -1,9 +1,9 @@
 //! Database connection and migration setup.
-#![allow(clippy::option_if_let_else)]  // triggered by Rocket macro
+#![allow(clippy::option_if_let_else)] // triggered by Rocket macro
 use rocket::{request::Outcome, Request};
 use rocket_db_pools::{sqlx, Connection, Database};
 
-use crate::{Error, deezer};
+use crate::{deezer, Error};
 
 /// The main (and only) database connection pool.
 #[derive(Database)]
@@ -30,9 +30,15 @@ pub async fn run_migrations(rocket: rocket::Rocket<rocket::Build>) -> rocket::fa
 
 /// Use the request guard to extract a database connection from a request.
 pub async fn extract(req: &Request<'_>) -> Outcome<Db, Error> {
-    req.guard::<Db>()
-        .await
-        .map_error(|(status, error)| error.map_or_else(|| (status, Error::DatabasePool(None)), |e| (status, e.into())))
+    req.guard::<Db>().await.map_error(|e| {
+        (
+            e.0,
+            Error::Internal(e.1.map_or_else(
+                || eyre::eyre!("unknown database connection error"),
+                From::from,
+            )),
+        )
+    })
 }
 
 impl From<i32> for deezer::Id {

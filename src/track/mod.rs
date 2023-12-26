@@ -1,7 +1,7 @@
 //! Tools for working with the music data in the database.
 use serde::Serialize;
 
-use crate::{DbConn, Error, deezer};
+use crate::{DbConn, Error, ResultExt, deezer};
 
 pub mod pick;
 mod insert;
@@ -17,7 +17,7 @@ pub async fn genre(db: &mut DbConn, id: deezer::Id) -> Result<deezer::Genre, Err
         "SELECT id, title AS name, picture_url AS picture FROM genre
         WHERE id = $1",
         i32::from(id),
-    ).fetch_one(db).await?;
+    ).fetch_one(db).await.wrap_err("querying genre")?;
     Ok(genre)
 }
 
@@ -31,8 +31,9 @@ pub async fn clip(
     let preview_url = sqlx::query_scalar!(
         "SELECT preview_url FROM track WHERE id = $1",
         i32::from(track_id),
-    ).fetch_one(db).await?;
+    ).fetch_one(db).await.wrap_err("querying track preview URL")?;
     music::clip(config, track_id.0, &preview_url, seconds).await
+        .wrap_err("clipping music")
 }
 
 /// Track metadata returned as part of game objects in the API.
@@ -71,7 +72,7 @@ impl Meta {
             i32::from(id),
         )
         .fetch_one(db)
-        .await?;
+        .await.wrap_err("querying track metadata")?;
         Ok(track)
     }
 }

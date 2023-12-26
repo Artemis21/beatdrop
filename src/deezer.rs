@@ -1,8 +1,8 @@
 //! A minimal wrapper for the parts of the Deezer API we care about.
 //! API documentation: <https://developers.deezer.com/api>
+use crate::{Error, ResultExt};
 use lazy_static::lazy_static;
-use reqwest::Error;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Base URL for the API.
 const API_URL: &str = "https://api.deezer.com";
@@ -16,7 +16,14 @@ lazy_static! {
 /// The genre with ID 0 is "all genres".
 pub async fn chart(genre_id: Id) -> Result<Vec<Track>, Error> {
     let url = format!("{API_URL}/chart/{id}/tracks", id = genre_id);
-    let data: DataWrap<_> = CLIENT.get(&url).send().await?.json().await?;
+    let data: DataWrap<_> = CLIENT
+        .get(&url)
+        .send()
+        .await
+        .wrap_err("fetching genre chart")?
+        .json()
+        .await
+        .wrap_err("deserialising genre chart")?;
     Ok(data.data)
 }
 
@@ -25,7 +32,14 @@ pub async fn chart(genre_id: Id) -> Result<Vec<Track>, Error> {
 /// all possible genre IDs.
 pub async fn genres() -> Result<Vec<Genre>, Error> {
     let url = format!("{API_URL}/genre", API_URL = API_URL);
-    let data: DataWrap<_> = CLIENT.get(&url).send().await?.json().await?;
+    let data: DataWrap<_> = CLIENT
+        .get(&url)
+        .send()
+        .await
+        .wrap_err("fetching genre list")?
+        .json()
+        .await
+        .wrap_err("deserialising genre list")?;
     Ok(data.data)
 }
 
@@ -37,7 +51,14 @@ pub async fn genres() -> Result<Vec<Genre>, Error> {
 /// for another reason.
 pub async fn album(album_id: Id) -> Result<Album, Error> {
     let url = format!("{API_URL}/album/{id}", id = album_id);
-    let data: DataWrap<_> = CLIENT.get(&url).send().await?.json().await?;
+    let data: DataWrap<_> = CLIENT
+        .get(&url)
+        .send()
+        .await
+        .wrap_err("fetching album")?
+        .json()
+        .await
+        .wrap_err("deserialising album")?;
     Ok(data.data)
 }
 
