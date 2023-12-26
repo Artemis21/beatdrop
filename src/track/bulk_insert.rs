@@ -9,13 +9,13 @@ pub struct BulkInserter<'a> {
     /// The database connection.
     db: &'a mut DbConn,
     /// The IDs of all genres that have already been inserted during this operation.
-    inserted_genre_ids: HashSet<i32>,
+    inserted_genre_ids: HashSet<deezer::Id>,
     /// The IDs of all albums that have already been inserted during this operation.
-    inserted_album_ids: HashSet<i32>,
+    inserted_album_ids: HashSet<deezer::Id>,
     /// The IDs of all artists that have already been inserted during this operation.
-    inserted_artist_ids: HashSet<i32>,
+    inserted_artist_ids: HashSet<deezer::Id>,
     /// The IDs of all tracks that have already been inserted during this operation.
-    inserted_track_ids: HashSet<i32>,
+    inserted_track_ids: HashSet<deezer::Id>,
 }
 
 impl<'a> BulkInserter<'a> {
@@ -64,13 +64,13 @@ impl<'a> BulkInserter<'a> {
     }
 
     /// Check if an album exists in the database.
-    async fn album_exists(&mut self, album_id: i32) -> Result<bool, Error> {
+    async fn album_exists(&mut self, album_id: deezer::Id) -> Result<bool, Error> {
         if self.inserted_album_ids.contains(&album_id) {
             return Ok(true);
         }
         let exists = sqlx::query_scalar!(
             "SELECT 1 FROM album WHERE id = $1",
-            album_id
+            i32::from(album_id),
         ).fetch_optional(&mut *self.db).await?;
         Ok(exists.is_some())
     }

@@ -59,11 +59,13 @@ fn asset_routes(dist: &std::path::Path) -> String {
     let branches = branches.join("\n");
     format!(
         r#"
+        /// Serve the index page embedded in the binary.
         #[get("/")]
-        fn embedded_index() -> (ContentType, &'static str) {{
+        const fn embedded_index() -> (ContentType, &'static str) {{
             (ContentType::HTML, include_str!("{index}"))
         }}
 
+        /// Serve a static file embedded in the binary.
         #[get("/static/<file>")]
         fn embedded_static_file(file: &str) -> Result<(ContentType, &'static str), (Status, &'static str)> {{
             match file {{

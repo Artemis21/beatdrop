@@ -1,6 +1,6 @@
 //! Database queries for inserting and updating music data in the database.
 use crate::{
-    deezer::{Album, Artist, Genre, Track},
+    deezer::{Album, Artist, Genre, Track, self},
     DbConn, Error,
 };
 
@@ -17,13 +17,13 @@ pub async fn track(db: &mut DbConn, track: &Track) -> Result<(), Error> {
             deezer_rank = EXCLUDED.deezer_rank,
             album_id = EXCLUDED.album_id,
             artist_id = EXCLUDED.artist_id",
-        track.id,
+        i32::from(track.id),
         track.title,
         track.link,
         track.preview,
         track.rank,
-        track.album.id,
-        track.artist.id,
+        i32::from(track.album.id),
+        i32::from(track.artist.id),
     ).execute(db).await?;
     Ok(())
 }
@@ -36,7 +36,7 @@ pub async fn album(db: &mut DbConn, album: &Album) -> Result<(), Error> {
             title = EXCLUDED.title,
             deezer_url = EXCLUDED.deezer_url,
             cover_art_url = EXCLUDED.cover_art_url",
-        album.id,
+        i32::from(album.id),
         album.title,
         album.link,
         album.cover,
@@ -53,7 +53,7 @@ pub async fn genre(db: &mut DbConn, genre: &Genre) -> Result<(), Error> {
         ON CONFLICT (id) DO UPDATE SET
             title = EXCLUDED.title,
             picture_url = EXCLUDED.picture_url",
-        genre.id,
+        i32::from(genre.id),
         genre.name,
         genre.picture,
     )
@@ -67,11 +67,11 @@ pub async fn genre(db: &mut DbConn, genre: &Genre) -> Result<(), Error> {
 /// The referenced album and genre must already exist in the database.
 ///
 /// If the relationship already exists, nothing will be done.
-pub async fn album_genre(db: &mut DbConn, album_id: i32, genre_id: i32) -> Result<(), Error> {
+pub async fn album_genre(db: &mut DbConn, album_id: deezer::Id, genre_id: deezer::Id) -> Result<(), Error> {
     sqlx::query!(
         "INSERT INTO album_genre (album_id, genre_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-        album_id,
-        genre_id
+        i32::from(album_id),
+        i32::from(genre_id),
     )
     .execute(db)
     .await?;
@@ -86,7 +86,7 @@ pub async fn artist(db: &mut DbConn, artist: &Artist) -> Result<(), Error> {
             title = EXCLUDED.title,
             deezer_url = EXCLUDED.deezer_url,
             picture_url = EXCLUDED.picture_url",
-        artist.id,
+        i32::from(artist.id),
         artist.name,
         artist.link,
         artist.picture,

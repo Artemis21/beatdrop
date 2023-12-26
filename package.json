@@ -18,6 +18,8 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.0.1"
+    "@reduxjs/toolkit": "^2.0.1",
+    "react-router-dom": "^6.21.0",
+    "swr": "^2.2.4"
   }
 }

@@ -47,7 +47,7 @@ fn blocking_save_track(path: std::path::PathBuf, mp3_data: Vec<u8>) -> Result<()
 }
 
 /// Download a track from Deezer and save it to the music cache.
-async fn download_track(config: &Config, track_id: i32, preview: &str) -> Result<(), Error> {
+async fn download_track(config: &Config, track_id: u32, preview: &str) -> Result<(), Error> {
     let response = CLIENT.get(preview).send().await?;
     let data = response.bytes().await?.to_vec();
     let path = config.music_dir.join(format!("{}.mp3", track_id));
@@ -59,7 +59,7 @@ async fn download_track(config: &Config, track_id: i32, preview: &str) -> Result
 /// Ensure that a given track is cached, and return the path.
 async fn ensure_cached(
     config: &Config,
-    track_id: i32,
+    track_id: u32,
     preview: &str,
 ) -> Result<std::path::PathBuf, Error> {
     let path = config.music_dir.join(format!("{}.mp3", track_id));
@@ -97,7 +97,7 @@ fn blocking_clip_track(path: std::path::PathBuf, seconds: Range<u32>) -> Result<
 /// The clip is returned as a vector of bytes in WAV format.
 pub async fn clip(
     config: &Config,
-    track_id: i32,
+    track_id: u32,
     preview: &str,
     seconds: Range<u32>,
 ) -> Result<Vec<u8>, Error> {

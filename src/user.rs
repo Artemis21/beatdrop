@@ -26,6 +26,7 @@ impl From<&crate::Config> for AuthConfig {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct User {
     pub id: i32,
     pub display_name: Option<String>,

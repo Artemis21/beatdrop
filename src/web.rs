@@ -56,9 +56,14 @@ fn filesystem_static_file(file: &str) -> Result<(ContentType, String), (Status, 
         .extension()
         .ok_or((Status::InternalServerError, "file has no extension"))?
         .to_string_lossy();
-    let typ = ContentType::from_extension(&ext)
-        .ok_or((Status::InternalServerError, "unknown file type"))?;
+    let mime_type = match ext.as_ref() {
+        "js" => ContentType::JavaScript,
+        "css" => ContentType::CSS,
+        "html" => ContentType::HTML,
+        "map" => ContentType::JSON,
+        _ => panic!("unknown file type"),
+    };
     let content =
         std::fs::read_to_string(&path).unwrap_or_else(|_| panic!("failed to read {path:?}"));
-    Ok((typ, content))
+    Ok((mime_type, content))
 }

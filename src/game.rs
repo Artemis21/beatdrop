@@ -31,6 +31,7 @@ const TIMED_UNLOCK_TIMES: [chrono::Duration; 6] = [
 const TIMED_GAME_LENGTH: chrono::Duration = chrono::Duration::milliseconds(106 * 1000);
 const MAX_GUESSES: usize = 5;
 
+#[derive(sqlx::FromRow)]
 pub struct Row {
     id: i32,
     #[allow(dead_code)]  // we use `SELECT *` to reduce boilerplate
@@ -38,14 +39,14 @@ pub struct Row {
     started_at: DateTime<Utc>,
     is_daily: bool,
     is_timed: bool,
-    genre_id: Option<i32>,
+    genre_id: database::DeezerOptionId,
     won: Option<bool>,
-    pub track_id: i32,
+    pub track_id: deezer::Id,
 }
 
 #[derive(Serialize)]
 struct Guess {
-    track_id: Option<i32>,
+    track_id: database::DeezerOptionId,
     guessed_at: DateTime<Utc>,
 }
 
@@ -55,16 +56,24 @@ pub struct Game {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Response {
     id: i32,
     started_at: DateTime<Utc>,
     is_daily: bool,
     is_timed: bool,
     genre: Option<deezer::Genre>,
-    guesses: Vec<Guess>,
+    guesses: Vec<GuessResponse>,
     unlocked_seconds: u32,
     won: Option<bool>,
     track: Option<track::Meta>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct GuessResponse {
+    track: Option<track::Meta>,
+    guessed_at: DateTime<Utc>,
 }
 
 impl std::ops::Deref for Game {
@@ -103,10 +112,10 @@ impl Game {
     pub async fn create(
         db: &mut DbConn,
         user_id: i32,
-        genre_id: Option<i32>,
+        genre_id: Option<deezer::Id>,
         daily: bool,
         timed: bool,
-        track_id: i32,
+        track_id: deezer::Id,
     ) -> Result<Self, Error> {
         let game = sqlx::query_as!(
             Row,
@@ -116,8 +125,8 @@ impl Game {
             user_id,
             daily,
             timed,
-            genre_id,
-            track_id,
+            genre_id.map(i32::from),
+            i32::from(track_id),
         )
         .fetch_one(db)
         .await?;
@@ -127,14 +136,14 @@ impl Game {
         })
     }
 
-    pub async fn new_guess(&mut self, db: &mut DbConn, track_id: Option<i32>) -> Result<(), Error> {
+    pub async fn new_guess(&mut self, db: &mut DbConn, track_id: Option<deezer::Id>) -> Result<(), Error> {
         let guess = sqlx::query_as!(
             Guess,
             "INSERT INTO game_guess (game_id, track_id, guess_number)
             VALUES ($1, $2, $3)
             RETURNING track_id, guessed_at",
             self.id,
-            track_id,
+            track_id.map(i32::from),
             i32::try_from(self.guesses.len()).expect("guess count to fit in i32"),
         )
         .fetch_one(db)
@@ -172,7 +181,7 @@ impl Game {
     fn is_guessed(&self) -> bool {
         self.guesses
             .iter()
-            .any(|guess| guess.track_id == Some(self.track_id))
+            .any(|guess| *guess.track_id == Some(self.track_id))
     }
 
     fn is_out_of_time(&self) -> bool {
@@ -196,10 +205,21 @@ impl Game {
             Some(_) => Some(track::Meta::get(db, self.track_id).await?),
             None => None,
         };
-        let genre = match &self.genre_id {
-            Some(genre_id) => Some(track::genre(db, *genre_id).await?),
+        let genre = match *self.genre_id {
+            Some(genre_id) => Some(track::genre(db, genre_id).await?),
             None => None,
         };
+        let mut guesses = Vec::with_capacity(self.guesses.len());
+        for guess in &self.guesses {
+            let track = match *guess.track_id {
+                Some(track_id) => Some(track::Meta::get(db, track_id).await?),
+                None => None,
+            };
+            guesses.push(GuessResponse {
+                track,
+                guessed_at: guess.guessed_at,
+            });
+        }
         Ok(Response {
             id: self.id,
             started_at: self.started_at,
@@ -208,7 +228,7 @@ impl Game {
             genre,
             unlocked_seconds: self.seconds_unlocked(),
             won: self.won,
-            guesses: self.guesses,
+            guesses,
             track,
         })
     }
@@ -219,6 +239,27 @@ impl User {
         let game = sqlx::query_as!(
             Row,
             "SELECT * FROM game WHERE account_id = $1 ORDER BY started_at DESC LIMIT 1",
+            self.id,
+        )
+        .fetch_optional(&mut *db)
+        .await?;
+        match game {
+            Some(game) => {
+                let mut game = game.with_guesses(db).await?;
+                game.end_if_over(db).await?;
+                Ok(Some(game))
+            }
+            None => Ok(None),
+        }
+    }
+
+    pub async fn daily_game(&self, db: &mut DbConn) -> Result<Option<Game>, Error> {
+        let game = sqlx::query_as!(
+            Row,
+            "SELECT * FROM game
+            WHERE account_id = $1
+                AND is_daily
+                AND started_at >= DATE_TRUNC('day', TIMEZONE('utc', NOW()))",
             self.id,
         )
         .fetch_optional(&mut *db)
@@ -260,6 +301,31 @@ impl<'r> FromRequest<'r> for Game {
             Ok(None) => {
                 request::Outcome::Error((http::Status::NotFound, Error::NotFound("no active game")))
             }
+            Err(err) => request::Outcome::Error((http::Status::InternalServerError, err)),
+        }
+    }
+}
+
+pub struct Maybe(Option<Game>);
+
+impl Maybe {
+    pub async fn into_response(self, db: &mut DbConn) -> Result<Option<Response>, Error> {
+        match self.0 {
+            Some(game) => Ok(Some(game.into_response(db).await?)),
+            None => Ok(None),
+        }
+    }
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for Maybe {
+    type Error = Error;
+
+    async fn from_request(req: &'r rocket::Request<'_>) -> request::Outcome<Self, Self::Error> {
+        let mut db = try_outcome!(database::extract(req).await);
+        let user = try_outcome!(req.guard::<crate::User>().await);
+        match user.current_game(&mut db).await {
+            Ok(game) => request::Outcome::Success(Self(game)),
             Err(err) => request::Outcome::Error((http::Status::InternalServerError, err)),
         }
     }

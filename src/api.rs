@@ -1,5 +1,5 @@
 //! Logic for handling calls to the API routes.
-use crate::{AuthConfig, Db, Error, User, track, Game, game};
+use crate::{AuthConfig, Db, Error, User, track, Game, deezer, game};
 use rocket::{delete, get, patch, post, routes, serde::json::Json, Route, State, http::ContentType};
 use serde::{Deserialize, Serialize};
 
@@ -14,6 +14,7 @@ pub fn routes() -> Vec<Route> {
         delete_account,
         new_game,
         get_active_game,
+        get_daily_game,
         new_guess,
         get_clip,
     ]
@@ -96,7 +97,7 @@ async fn delete_account(mut db: Db, user: User) -> Result<(), Error> {
 #[derive(Deserialize)]
 struct NewGame {
     /// The genre ID to restrict the game to, or `null` to allow any genre.
-    genre_id: Option<i32>,
+    genre_id: Option<deezer::Id>,
     /// Whether the game is a daily game. If it is, `genre_id` and `timed` must
     /// be `null` and `false` respectively.
     #[serde(default)]
@@ -132,17 +133,26 @@ async fn new_game(mut db: Db, user: User, body: Json<NewGame>) -> Result<Json<ga
     Ok(Json(game.into_response(&mut db).await?))
 }
 
-/// Get the authenticated user's active game.
+/// Get the authenticated user's active or most recent game.
 #[get("/game")]
-async fn get_active_game(mut db: Db, game: Game) -> Result<Json<game::Response>, Error> {
+async fn get_active_game(mut db: Db, game: game::Maybe) -> Result<Json<Option<game::Response>>, Error> {
     Ok(Json(game.into_response(&mut db).await?))
+}
+
+/// Get the authenticated user's current daily game, if any.
+#[get("/game/daily")]
+async fn get_daily_game(mut db: Db, user: User) -> Result<Json<Option<game::Response>>, Error> {
+    match user.daily_game(&mut db).await? {
+        Some(game) => Ok(Json(Some(game.into_response(&mut db).await?))),
+        None => Ok(Json(None)),
+    }
 }
 
 /// The request body for making a guess.
 #[derive(Deserialize)]
 struct NewGuess {
     /// The ID of the track to guess, or `null` to skip.
-    track_id: Option<i32>,
+    track_id: Option<deezer::Id>,
 }
 
 /// Submit a guess for the authenticated user's active game.

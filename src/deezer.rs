@@ -14,7 +14,7 @@ lazy_static! {
 
 /// Fetch the "chart" (a list of popular tracks) for a given genre.
 /// The genre with ID 0 is "all genres".
-pub async fn chart(genre_id: i32) -> Result<Vec<Track>, Error> {
+pub async fn chart(genre_id: Id) -> Result<Vec<Track>, Error> {
     let url = format!("{API_URL}/chart/{id}/tracks", id = genre_id);
     let data: DataWrap<_> = CLIENT.get(&url).send().await?.json().await?;
     Ok(data.data)
@@ -35,7 +35,7 @@ pub async fn genres() -> Result<Vec<Genre>, Error> {
 ///
 /// Returns an error if the album does not exist, or if the API request fails
 /// for another reason.
-pub async fn album(album_id: i32) -> Result<Album, Error> {
+pub async fn album(album_id: Id) -> Result<Album, Error> {
     let url = format!("{API_URL}/album/{id}", id = album_id);
     let data: DataWrap<_> = CLIENT.get(&url).send().await?.json().await?;
     Ok(data.data)
@@ -53,7 +53,7 @@ struct DataWrap<T> {
 #[derive(Debug, Deserialize)]
 pub struct Artist {
     /// Deezer ID
-    pub id: i32,
+    pub id: Id,
     /// Artist name
     pub name: String,
     /// Link to the artist page on Deezer
@@ -66,7 +66,7 @@ pub struct Artist {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Genre {
     /// Deezer ID
-    pub id: i32,
+    pub id: Id,
     /// Genre name
     pub name: String,
     /// URL of an image representing the genre
@@ -77,7 +77,7 @@ pub struct Genre {
 #[derive(Debug, Deserialize)]
 pub struct Track {
     /// Deezer ID
-    pub id: i32,
+    pub id: Id,
     /// Track title
     pub title: String,
     /// A track ranking (seems to be in the range 10,000 to 100,000)
@@ -98,7 +98,7 @@ pub struct Track {
 #[derive(Debug, Deserialize)]
 pub struct PartialAlbum {
     /// Deezer ID
-    pub id: i32,
+    pub id: Id,
     /// Album title
     pub title: String,
     /// URL of a cover art image for the album
@@ -109,7 +109,7 @@ pub struct PartialAlbum {
 #[derive(Debug, Deserialize)]
 pub struct Album {
     /// Deezer ID
-    pub id: i32,
+    pub id: Id,
     /// Album title
     pub title: String,
     /// URL of a cover art image for the album
@@ -119,3 +119,11 @@ pub struct Album {
     /// A list of genres associated with the album
     pub genres: Vec<Genre>,
 }
+
+/// A wrapper around a Deezer ID.
+///
+/// This is mainly useful to handle conversions to and from the database representation,
+/// which uses `i32` instead of `u32` (because SQL doesn't have unsigned integers).
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, Deserialize, Serialize)]
+#[serde(transparent)]
+pub struct Id(pub u32);

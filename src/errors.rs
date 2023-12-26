@@ -13,7 +13,7 @@ pub enum Error {
     #[error("database pool error")]
     DatabasePool(#[from] Option<rocket_db_pools::Error<sqlx::Error>>),
     /// An error from the HTTP client while making a request to the Deezer API.
-    #[error("request error")]
+    #[error("outgoing request error")]
     Request(#[from] reqwest::Error),
     /// An error while trying to use the file system.
     #[error("file system error")]
@@ -35,6 +35,10 @@ pub enum Error {
 #[rocket::async_trait]
 impl<'r> Responder<'r, 'static> for Error {
     fn respond_to(self, _: &'r Request<'_>) -> response::Result<'static> {
+        #[cfg(debug_assertions)]
+        {
+            eprintln!("{self:?}");
+        }
         let status = match self {
             Self::Database(_) | Self::DatabasePool(_) | Self::Request(_) | Self::Io(_) | Self::Internal(_) => {
                 rocket::http::Status::InternalServerError

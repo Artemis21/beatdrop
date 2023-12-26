@@ -11,12 +11,12 @@ mod music;
 pub use music::Config;
 
 /// Get a genre object from the database by ID.
-pub async fn genre(db: &mut DbConn, id: i32) -> Result<deezer::Genre, Error> {
+pub async fn genre(db: &mut DbConn, id: deezer::Id) -> Result<deezer::Genre, Error> {
     let genre = sqlx::query_as!(
         deezer::Genre,
         "SELECT id, title AS name, picture_url AS picture FROM genre
         WHERE id = $1",
-        id,
+        i32::from(id),
     ).fetch_one(db).await?;
     Ok(genre)
 }
@@ -25,21 +25,21 @@ pub async fn genre(db: &mut DbConn, id: i32) -> Result<deezer::Genre, Error> {
 pub async fn clip(
     db: &mut DbConn,
     config: &Config,
-    track_id: i32,
+    track_id: deezer::Id,
     seconds: std::ops::Range<u32>,
 ) -> Result<Vec<u8>, Error> {
     let preview_url = sqlx::query_scalar!(
         "SELECT preview_url FROM track WHERE id = $1",
-        track_id,
+        i32::from(track_id),
     ).fetch_one(db).await?;
-    music::clip(config, track_id, &preview_url, seconds).await
+    music::clip(config, track_id.0, &preview_url, seconds).await
 }
 
 /// Track metadata returned as part of game objects in the API.
 #[derive(Serialize)]
 pub struct Meta {
     /// The track's Deezer ID
-    id: i32,
+    id: deezer::Id,
     /// Track title
     title: String,
     /// Link to the track on Deezer
@@ -54,7 +54,7 @@ pub struct Meta {
 
 impl Meta {
     /// Get track metadata from the database by ID.
-    pub async fn get(db: &mut DbConn, id: i32) -> Result<Self, Error> {
+    pub async fn get(db: &mut DbConn, id: deezer::Id) -> Result<Self, Error> {
         let track = sqlx::query_as!(
             Self,
             "SELECT
@@ -68,7 +68,7 @@ impl Meta {
             INNER JOIN artist ON track.artist_id = artist.id
             INNER JOIN album ON track.album_id = album.id
             WHERE track.id = $1",
-            id,
+            i32::from(id),
         )
         .fetch_one(db)
         .await?;

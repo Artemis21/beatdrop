@@ -1,7 +1,7 @@
 import { WrongGuess, SkippedGuess, EmptyGuess } from "./Guess";
 
 export function Guesses({ guesses }) {
-    return <div class="guesses">
+    return <div className="guesses">
         { [1, 2, 3, 4, 5, 6].map(n => {
             if (n < guesses.length) {
                 const guess = guesses[n];
