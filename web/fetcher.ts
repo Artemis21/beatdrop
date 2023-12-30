@@ -10,7 +10,7 @@ class Credentials {
 
     constructor() {
         this.#loginSecret = localStorage.getItem("loginSecret");
-        this.#sessionToken = localStorage.getItem("password");
+        this.#sessionToken = localStorage.getItem("sessionToken");
     }
 
     get loginSecret(): string | null {

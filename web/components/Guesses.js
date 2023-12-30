@@ -1,19 +1,19 @@
-import { WrongGuess, SkippedGuess, EmptyGuess } from "./Guess";
+import { WrongGuess, SkippedGuess, NewGuess, EmptyGuess } from "./Guess";
 
 export function Guesses({ guesses }) {
     return <div className="guesses">
-        { [1, 2, 3, 4, 5, 6].map(n => {
+        { [0, 1, 2, 3, 4, 5].map(n => {
             if (n < guesses.length) {
                 const guess = guesses[n];
                 if (guess !== null) {
-                    return WrongGuess(guess);
+                    return <WrongGuess guess={guess} key={n} />;
                 } else {
-                    return SkippedGuess();
+                    return <SkippedGuess key={n} />;
                 }
             } else if (n === guesses.length) {
-                return NewGuess();
+                return <NewGuess key={n} />;
             } else {
-                return EmptyGuess();
+                return <EmptyGuess key={n} />;
             }
         }) }
     </div>;

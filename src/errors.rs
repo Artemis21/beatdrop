@@ -43,6 +43,7 @@ impl<T: Into<eyre::Report>> From<T> for Error {
 }
 
 impl Error {
+    /// Give additional context on what was being attempted if this is an internal error.
     fn wrap_err(self, msg: &'static str) -> Self {
         match self {
             Self::Internal(e) => Self::Internal(e.wrap_err(msg)),
@@ -51,11 +52,14 @@ impl Error {
     }
 }
 
+/// Extra methods on `Result` for working with `Error`.
 pub trait ResultExt<T> {
+    /// Give additional context on what was being attempted.
     fn wrap_err(self, msg: &'static str) -> Result<T, Error>;
 }
 
 impl<T, E: Into<Error>> ResultExt<T> for Result<T, E> {
+    /// Give additional context on what was being attempted if this is an internal error.
     fn wrap_err(self, msg: &'static str) -> Result<T, Error> {
         self.map_err(|e| e.into().wrap_err(msg))
     }

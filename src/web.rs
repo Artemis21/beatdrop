@@ -1,10 +1,14 @@
 //! Serve static web assets.
-use rocket::{get, routes, Route, http::{ContentType, Status}};
+use rocket::{
+    get,
+    http::{ContentType, Status},
+    routes, Route,
+};
 #[cfg(debug_assertions)]
 use std::path::PathBuf;
 
 /// Get the routes for serving static web assets.
-#[cfg_attr(debug_assertions, allow(unused_variables))]  // dev_mode ignored in release
+#[cfg_attr(not(debug_assertions), allow(unused_variables))] // dev_mode ignored in release
 pub fn routes(dev_mode: bool) -> Vec<Route> {
     #[cfg(debug_assertions)]
     if dev_mode {
@@ -24,15 +28,18 @@ fn watch_frontend() {
         .args(["run", "parcel", "watch"])
         .spawn()
         .expect("failed to run `yarn run parcel watch`");
-    let status = parcel.wait().expect("failed to wait for `yarn run parcel watch`");
+    let status = parcel
+        .wait()
+        .expect("failed to wait for `yarn run parcel watch`");
     if !status.success() {
         eprintln!("`yarn run parcel watch` failed - changes to the frontend will not be rebuilt");
     }
 }
 
-/// Serve the index page from the filesystem.
+/// Serve the SPA from the filesystem.
+/// This matches all routes not matched by other handlers, since the SPA does its own routing.
 #[cfg(debug_assertions)]
-#[get("/")]
+#[get("/<_>")]
 fn filesystem_index() -> (ContentType, String) {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("dist")
@@ -45,7 +52,7 @@ fn filesystem_index() -> (ContentType, String) {
 /// Serve a static file from the filesystem.
 #[cfg(debug_assertions)]
 #[rocket::get("/static/<file>")]
-fn filesystem_static_file(file: &str) -> Result<(ContentType, String), (Status, &'static str)> {
+fn filesystem_static_file(file: &str) -> Result<(ContentType, Vec<u8>), (Status, &'static str)> {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("dist")
         .join(file);
@@ -56,14 +63,12 @@ fn filesystem_static_file(file: &str) -> Result<(ContentType, String), (Status, 
         .extension()
         .ok_or((Status::InternalServerError, "file has no extension"))?
         .to_string_lossy();
-    let mime_type = match ext.as_ref() {
-        "js" => ContentType::JavaScript,
-        "css" => ContentType::CSS,
-        "html" => ContentType::HTML,
-        "map" => ContentType::JSON,
-        _ => panic!("unknown file type"),
+    let mime_type = if ext == "map" {
+        ContentType::JSON // `.map` for JSON sourcemaps is not recognised by `ContentType::from_extension`
+    } else {
+        ContentType::from_extension(&ext)
+            .expect("could not determine content type from file extension")
     };
-    let content =
-        std::fs::read_to_string(&path).unwrap_or_else(|_| panic!("failed to read {path:?}"));
+    let content = std::fs::read(&path).expect("failed to read path");
     Ok((mime_type, content))
 }

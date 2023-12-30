@@ -51,7 +51,7 @@ fn asset_routes(dist: &std::path::Path) -> String {
         let rel_path = dist.join(file.to_string());
         let rel_path = rel_path.to_string_lossy();
         branches.push(format!(
-            "\"{file}\" => Ok((ContentType::from_extension(\"{ext}\").unwrap(), include_str!(\"{rel_path}\"))),"
+            "\"{file}\" => Ok((ContentType::from_extension(\"{ext}\").unwrap(), include_bytes!(\"{rel_path}\"))),"
         ));
     }
     let index = dist.join("index.html");
@@ -60,14 +60,14 @@ fn asset_routes(dist: &std::path::Path) -> String {
     format!(
         r#"
         /// Serve the index page embedded in the binary.
-        #[get("/")]
-        const fn embedded_index() -> (ContentType, &'static str) {{
-            (ContentType::HTML, include_str!("{index}"))
+        #[get("/<_>")]
+        const fn embedded_index() -> (ContentType, &'static [u8]) {{
+            (ContentType::HTML, include_bytes!("{index}"))
         }}
 
         /// Serve a static file embedded in the binary.
         #[get("/static/<file>")]
-        fn embedded_static_file(file: &str) -> Result<(ContentType, &'static str), (Status, &'static str)> {{
+        fn embedded_static_file(file: &str) -> Result<(ContentType, &'static [u8]), (Status, &'static str)> {{
             match file {{
                 {branches}
                 _ => Err((Status::NotFound, "file not found")),

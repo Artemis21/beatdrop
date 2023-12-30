@@ -13,6 +13,8 @@ export function App() {
             path: "/game",
             element: <Game />
         },
+        // TODO: `/start/timed` and `/start/unlimited` routes
+        // TODO: handle 404s
     ]);
     return <StrictMode>
         <RouterProvider router={router} />
