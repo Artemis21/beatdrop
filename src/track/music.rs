@@ -13,7 +13,7 @@ pub struct Config {
 
 impl From<&crate::Config> for Config {
     fn from(config: &crate::Config) -> Self {
-        let music_dir = config.upload_dir.join("music");
+        let music_dir = config.media_dir.join("music");
         std::fs::create_dir_all(&music_dir).expect("failed to create music directory");
         Self { music_dir }
     }

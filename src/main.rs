@@ -59,8 +59,8 @@ fn rocket() -> _ {
 struct Config {
     /// Database connection string (must be `postgres://`).
     db_url: String,
-    /// Directory to store uploaded files in.
-    upload_dir: std::path::PathBuf,
+    /// Directory to store cached media files in.
+    media_dir: std::path::PathBuf,
     /// Enable frontend development mode: serve the frontend from the filesystem instead of
     /// embedding it in the binary, and run `parcel watch` to rebuild on changes (with HMR!).
     /// This avoids having to rebuild and restart the server for frontend development.
