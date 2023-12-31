@@ -178,7 +178,6 @@ body
 .play_bar__seg__fill
   background: #5a5
   height: 2rem
-  transition: width 250ms linear
 
 .controls
   display: flex
@@ -186,6 +185,8 @@ body
   align-items: center
   gap: 1rem
   margin-bottom: 1rem
+
+// FIXME: improve contrast in control colours
 
 .control
   border: 0
@@ -201,11 +202,16 @@ body
   display: flex
   align-items: center
   justify-content: center
-  cursor: pointer
   transition: color 50ms linear
-
-  &:hover
-    color: #000
 
 .control--play
   font-size: 3rem
+
+.control--disabled
+  color: #666
+
+.control--enabled
+  cursor: pointer
+
+  &:hover
+    color: #000

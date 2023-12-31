@@ -18,7 +18,9 @@ export function Game() {
     // TODO: handle completed games, or game === null
     return <>
         <Nav />
-        <Guesses game={data} />
-        <Player game={data} />
+        <div className="guesses">
+            <Guesses game={data} />
+            <Player game={data} />
+        </div>
     </>;
 }
