@@ -129,7 +129,7 @@ async function ensureLoggedIn() {
 
 export async function fetcher(key: "/account/me"): Promise<Account>;
 export async function fetcher(key: "/game" | "/game/daily"): Promise<Game | null>;
-// export async function fetcher(key: `/game/clip?seek=${number}`): Promise<Blob>;
+export async function fetcher(key: `/game/clip`): Promise<Blob>;
 export async function fetcher(key: string): Promise<object | null> {
     const response = await endpoint("GET", key);
     if (response.headers.get("Content-Type") === "audio/wav") {

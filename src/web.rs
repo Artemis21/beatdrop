@@ -39,7 +39,7 @@ fn watch_frontend() {
 /// Serve the SPA from the filesystem.
 /// This matches all routes not matched by other handlers, since the SPA does its own routing.
 #[cfg(debug_assertions)]
-#[get("/<_>")]
+#[get("/<_..>")]
 fn filesystem_index() -> (ContentType, String) {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("dist")

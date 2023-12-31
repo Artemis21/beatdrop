@@ -60,7 +60,7 @@ fn asset_routes(dist: &std::path::Path) -> String {
     format!(
         r#"
         /// Serve the index page embedded in the binary.
-        #[get("/<_>")]
+        #[get("/<_..>")]
         const fn embedded_index() -> (ContentType, &'static [u8]) {{
             (ContentType::HTML, include_bytes!("{index}"))
         }}
