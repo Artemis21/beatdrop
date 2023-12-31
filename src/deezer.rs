@@ -28,7 +28,7 @@ pub async fn chart(genre_id: Id) -> Result<Vec<Track>, Error> {
 }
 
 /// Get a list of common genres.
-/// There does not seem to be a way to get a list of all genres, short enumerating
+/// There does not seem to be a way to get a list of all genres, short of enumerating
 /// all possible genre IDs.
 pub async fn genres() -> Result<Vec<Genre>, Error> {
     let url = format!("{API_URL}/genre", API_URL = API_URL);
@@ -60,6 +60,21 @@ pub async fn album(album_id: Id) -> Result<Album, Error> {
         .await
         .wrap_err("error deserialising album")?;
     Ok(data)
+}
+
+/// Search for a track by name or artist.
+pub async fn track_search(q: &str) -> Result<Vec<Track>, Error> {
+    let url = format!("{API_URL}/search/track");
+    let data: DataWrap<_> = CLIENT
+        .get(&url)
+        .query(&[("q", q)])
+        .send()
+        .await
+        .wrap_err("error searching tracks")?
+        .json()
+        .await
+        .wrap_err("error deserialising track search results")?;
+    Ok(data.data)
 }
 
 /// A helper for serde deserialisation of API responses which are wrapped in

@@ -77,3 +77,16 @@ impl Meta {
         Ok(track)
     }
 }
+
+impl From<deezer::Track> for Meta {
+    fn from(track: deezer::Track) -> Self {
+        Self {
+            id: track.id,
+            title: track.title,
+            link: track.link,
+            artist_name: track.artist.name,
+            album_title: track.album.title,
+            album_cover: track.album.cover,
+        }
+    }
+}

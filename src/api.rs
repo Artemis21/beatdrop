@@ -1,10 +1,12 @@
 //! Logic for handling calls to the API routes.
-use crate::{AuthConfig, Db, Error, User, track, Game, deezer, game};
-use rocket::{delete, get, patch, post, routes, serde::json::Json, Route, State, http::ContentType};
+use crate::{deezer, game, track, AuthConfig, Db, Error, Game, User};
+use rocket::{
+    delete, get, http::ContentType, patch, post, routes, serde::json::Json, Route, State,
+};
 use serde::{Deserialize, Serialize};
 
 /// Collect all the API endpoints.
-#[allow(clippy::no_effect_underscore_binding)]  // triggered by macro
+#[allow(clippy::no_effect_underscore_binding)] // triggered by macro
 pub fn routes() -> Vec<Route> {
     routes![
         new_account,
@@ -17,6 +19,7 @@ pub fn routes() -> Vec<Route> {
         get_daily_game,
         new_guess,
         get_clip,
+        search_track,
     ]
 }
 
@@ -109,7 +112,11 @@ struct NewGame {
 
 /// Begin a new game for the authenticated user.
 #[post("/game", data = "<body>")]
-async fn new_game(mut db: Db, user: User, body: Json<NewGame>) -> Result<Json<game::Response>, Error> {
+async fn new_game(
+    mut db: Db,
+    user: User,
+    body: Json<NewGame>,
+) -> Result<Json<game::Response>, Error> {
     let last_game = user.current_game(&mut db).await?;
     if let Some(last_game) = last_game {
         if !last_game.is_over() {
@@ -118,10 +125,14 @@ async fn new_game(mut db: Db, user: User, body: Json<NewGame>) -> Result<Json<ga
     }
     let track_id = if body.daily {
         if body.genre_id.is_some() || body.timed {
-            return Err(Error::InvalidForm("daily games cannot be timed or have a genre"));
+            return Err(Error::InvalidForm(
+                "daily games cannot be timed or have a genre",
+            ));
         }
         if user.has_played_daily(&mut db).await? {
-            return Err(Error::InvalidForm("user has already played the daily game today"));
+            return Err(Error::InvalidForm(
+                "user has already played the daily game today",
+            ));
         }
         track::pick::daily(&mut db).await?
     } else if let Some(genre_id) = body.genre_id {
@@ -129,13 +140,24 @@ async fn new_game(mut db: Db, user: User, body: Json<NewGame>) -> Result<Json<ga
     } else {
         track::pick::any(&mut db).await?
     };
-    let game = Game::create(&mut db, user.id, body.genre_id, body.daily, body.timed, track_id).await?;
+    let game = Game::create(
+        &mut db,
+        user.id,
+        body.genre_id,
+        body.daily,
+        body.timed,
+        track_id,
+    )
+    .await?;
     Ok(Json(game.into_response(&mut db).await?))
 }
 
 /// Get the authenticated user's active or most recent game.
 #[get("/game")]
-async fn get_active_game(mut db: Db, game: game::Maybe) -> Result<Json<Option<game::Response>>, Error> {
+async fn get_active_game(
+    mut db: Db,
+    game: game::Maybe,
+) -> Result<Json<Option<game::Response>>, Error> {
     Ok(Json(game.into_response(&mut db).await?))
 }
 
@@ -159,7 +181,11 @@ struct NewGuess {
 ///
 /// Does nothing if the game is already over.
 #[post("/game/guess", data = "<body>")]
-async fn new_guess(mut db: Db, mut game: Game, body: Json<NewGuess>) -> Result<Json<game::Response>, Error> {
+async fn new_guess(
+    mut db: Db,
+    mut game: Game,
+    body: Json<NewGuess>,
+) -> Result<Json<game::Response>, Error> {
     if !game.is_over() {
         game.new_guess(&mut db, body.track_id).await?;
         game.end_if_over(&mut db).await?;
@@ -180,6 +206,25 @@ async fn get_clip(
     if start >= end {
         return Err(Error::InvalidForm("cannot seek past end of unlocked music"));
     }
-    track::clip(&mut db, track_config, game.track_id, start..end).await
+    track::clip(&mut db, track_config, game.track_id, start..end)
+        .await
         .map(|bytes| (ContentType::new("audio", "wav"), bytes))
+}
+
+/// JSON response to a track search query.
+#[derive(Default, Serialize)]
+struct SearchResults {
+    /// The tracks that were found.
+    tracks: Vec<track::Meta>,
+}
+
+/// Search for a track by name.
+#[get("/track/search?<q>")]
+async fn search_track(q: &str) -> Result<Json<SearchResults>, Error> {
+    if q.is_empty() {
+        return Ok(Json(SearchResults::default()));
+    }
+    let tracks = deezer::track_search(q).await?;
+    let meta = tracks.into_iter().map(From::from).collect();
+    Ok(Json(SearchResults { tracks: meta }))
 }

@@ -65,7 +65,7 @@ async function endpoint(
 ): Promise<Response> {
     const headers: Record<string, string> = {};
     if (authn) {
-        await ensureLoggedIn();  // This is recursive, but ensureLoggedIn doesn't pass authn=true
+        await ensureLoggedIn(); // This is recursive, but ensureLoggedIn doesn't pass authn=true
         headers.Authorization = `Bearer ${credentials.sessionToken}`;
     }
     if (body !== null) {
@@ -127,11 +127,19 @@ async function ensureLoggedIn() {
     await login();
 }
 
-export async function fetchAccount(key: "/account/me"): Promise<Account | null> {
+export async function fetchAccount(
+    key: "/account/me",
+): Promise<Account | null> {
     return await (await endpoint("GET", key)).json();
 }
 
-export async function fetchGame(key: "/game" | "/game/daily"): Promise<Game | null> {
+export async function fetchGame(
+    key: "/game" | "/game/daily",
+): Promise<Game | null> {
+    return await (await endpoint("GET", key)).json();
+}
+
+export async function fetchTracks(key: string): Promise<TrackSearchResults> {
     return await (await endpoint("GET", key)).json();
 }
 
@@ -215,7 +223,7 @@ export type Game = {
     guesses: Guess[];
     won: boolean | null;
     track: Track | null;
-    constants: GameConstants,
+    constants: GameConstants;
 };
 
 /** A genre, as returned by the API. */
@@ -244,6 +252,11 @@ export type Track = {
 /** Game constants, as returned by the API. */
 export type GameConstants = {
     maxGuesses: number;
-    musicClipMillis: number[],
-    timedUnlockMillis: number[],
-}
+    musicClipMillis: number[];
+    timedUnlockMillis: number[];
+};
+
+/** Search results for a track search, as returned by the API. */
+export type TrackSearchResults = {
+    tracks: Track[];
+};
