@@ -1,10 +1,11 @@
+import { Track } from "../fetcher";
 import { SongSearch } from "./SongSearch";
 
-export function WrongGuess({ guess }) {
+export function WrongGuess({ track }: { track: Track }) {
     return <div className="guess guess--wrong">
-        <img className="guess__thumb" src={guess.cover} />
-        <span className="guess__title">{guess.title}</span>
-        <span className="guess__sub">{guess.artist}</span>
+        <img className="guess__thumb" src={track.albumCover} />
+        <span className="guess__title">{track.title}</span>
+        <span className="guess__sub">{track.artistName}</span>
     </div>;
 }
 
@@ -25,7 +26,7 @@ export function EmptyGuess() {
 
 export function NewGuess() {
     return <div className="guess guess--active">
-        <SongSearch className="guess__title" />
+        <SongSearch />
         <span className="guess__sub"></span>
     </div>;
 }

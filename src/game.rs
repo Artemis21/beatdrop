@@ -13,8 +13,56 @@ const fn seconds(n: i64) -> chrono::Duration {
     chrono::Duration::milliseconds(n * 1000)
 }
 
-const MUSIC_CLIP_LENGTHS: [u32; 7] = [1, 2, 4, 7, 11, 16, 30];
-const TIMED_UNLOCK_TIMES: [chrono::Duration; 6] = [
+#[derive(Clone, Copy)]
+pub struct GenericConstants<const MAX_GUESSES: usize> {
+    /// How long each clip is (from the start of the track).
+    music_clip_lengths: [chrono::Duration; MAX_GUESSES],
+    /// The durations into the timed game at which each clip unlocks.
+    /// The final element is the time at which the game ends.
+    timed_unlock_times: [chrono::Duration; MAX_GUESSES],
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ConstantsSerde {
+    max_guesses: usize,
+    music_clip_millis: Vec<u64>,
+    timed_unlock_millis: Vec<u64>,
+}
+
+impl<const N: usize> From<&GenericConstants<N>> for ConstantsSerde {
+    fn from(vals: &GenericConstants<N>) -> Self {
+        let music_clip_millis = vals.music_clip_lengths.iter()
+            .map(|duration| u64::try_from(duration.num_milliseconds()).expect("clip lengths to be positive"))
+            .collect();
+        let timed_unlock_millis = vals.timed_unlock_times.iter()
+            .map(|duration| u64::try_from(duration.num_milliseconds()).expect("unlock times to be positive"))
+            .collect();
+        Self {
+            max_guesses: N,
+            music_clip_millis,
+            timed_unlock_millis,
+        }
+    }
+}
+
+impl<const N: usize> Serialize for GenericConstants<N> {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        ConstantsSerde::from(self).serialize(serializer)
+    }
+}
+
+const MAX_GUESSES: usize = 7;
+const MUSIC_CLIP_LENGTHS: [chrono::Duration; 7] = [
+    seconds(1),
+    seconds(2),
+    seconds(4),
+    seconds(7),
+    seconds(11),
+    seconds(16),
+    seconds(30),
+];
+const TIMED_UNLOCK_TIMES: [chrono::Duration; 7] = [
     // 1s clip + 5s
     seconds(6),
     // 2s clip + 5s
@@ -27,10 +75,16 @@ const TIMED_UNLOCK_TIMES: [chrono::Duration; 6] = [
     seconds(50),
     // 16s clip + 5s
     seconds(71),
+    // 30s clip + 5s
+    seconds(106),
 ];
-// Then the timed game ends after another 30s clip + 5s
-const TIMED_GAME_LENGTH: chrono::Duration = chrono::Duration::milliseconds(106 * 1000);
-const MAX_GUESSES: usize = 5;
+const TIMED_GAME_LENGTH: chrono::Duration = TIMED_UNLOCK_TIMES[MAX_GUESSES - 1];
+
+pub type Constants = GenericConstants<MAX_GUESSES>;
+pub const CONSTANTS: Constants = Constants {
+    music_clip_lengths: MUSIC_CLIP_LENGTHS,
+    timed_unlock_times: TIMED_UNLOCK_TIMES,
+};
 
 #[derive(sqlx::FromRow)]
 pub struct Row {
@@ -46,6 +100,7 @@ pub struct Row {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 struct Guess {
     track_id: database::DeezerOptionId,
     guessed_at: DateTime<Utc>,
@@ -65,9 +120,9 @@ pub struct Response {
     is_timed: bool,
     genre: Option<deezer::Genre>,
     guesses: Vec<GuessResponse>,
-    unlocked_seconds: u32,
     won: Option<bool>,
     track: Option<track::Meta>,
+    constants: Constants,
 }
 
 #[derive(Serialize)]
@@ -153,7 +208,7 @@ impl Game {
         Ok(())
     }
 
-    pub fn seconds_unlocked(&self) -> u32 {
+    pub fn time_unlocked(&self) -> chrono::Duration {
         let idx = if self.is_timed {
             let elapsed = Utc::now() - self.started_at;
             TIMED_UNLOCK_TIMES.iter().filter(|&&t| t < elapsed).count()
@@ -228,10 +283,10 @@ impl Game {
             is_daily: self.is_daily,
             is_timed: self.is_timed,
             genre,
-            unlocked_seconds: self.seconds_unlocked(),
             won: self.won,
             guesses,
             track,
+            constants: CONSTANTS,
         })
     }
 }

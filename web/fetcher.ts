@@ -127,15 +127,16 @@ async function ensureLoggedIn() {
     await login();
 }
 
-export async function fetcher(key: "/account/me"): Promise<Account>;
-export async function fetcher(key: "/game" | "/game/daily"): Promise<Game | null>;
-export async function fetcher(key: `/game/clip`): Promise<Blob>;
-export async function fetcher(key: string): Promise<object | null> {
-    const response = await endpoint("GET", key);
-    if (response.headers.get("Content-Type") === "audio/wav") {
-        return await response.blob();
-    }
-    return await response.json();
+export async function fetchAccount(key: "/account/me"): Promise<Account | null> {
+    return await (await endpoint("GET", key)).json();
+}
+
+export async function fetchGame(key: "/game" | "/game/daily"): Promise<Game | null> {
+    return await (await endpoint("GET", key)).json();
+}
+
+export async function fetchBlob(key: "/game/clip"): Promise<Blob> {
+    return await (await endpoint("GET", key)).blob();
 }
 
 /** Update the current account's display name.
@@ -212,9 +213,9 @@ export type Game = {
     isTimed: boolean;
     genre: Genre | null;
     guesses: Guess[];
-    unlockedSeconds: number;
     won: boolean | null;
     track: Track | null;
+    constants: GameConstants,
 };
 
 /** A genre, as returned by the API. */
@@ -226,7 +227,7 @@ export type Genre = {
 
 /** A guess within a game, as returned by the API. */
 export type Guess = {
-    trackId: number;
+    track: Track;
     guessedAt: Date;
 };
 
@@ -239,3 +240,10 @@ export type Track = {
     albumName: string;
     albumCover: string;
 };
+
+/** Game constants, as returned by the API. */
+export type GameConstants = {
+    maxGuesses: number;
+    musicClipMillis: number[],
+    timedUnlockMillis: number[],
+}

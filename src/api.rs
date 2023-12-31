@@ -175,8 +175,8 @@ async fn get_clip(
     game: Game,
     seek: Option<u32>,
 ) -> Result<(ContentType, Vec<u8>), Error> {
-    let end = game.seconds_unlocked();
-    let start = seek.unwrap_or(0);
+    let end = game.time_unlocked();
+    let start = chrono::Duration::milliseconds(seek.unwrap_or(0).into());
     if start >= end {
         return Err(Error::InvalidForm("cannot seek past end of unlocked music"));
     }

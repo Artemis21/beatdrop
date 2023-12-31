@@ -81,16 +81,18 @@ async fn ensure_cached(
 }
 
 /// Get a clip from a track (blocking).
-fn blocking_clip_track(path: std::path::PathBuf, seconds: Range<u32>) -> Result<Vec<u8>, Error> {
+fn blocking_clip_track(path: std::path::PathBuf, time: Range<chrono::Duration>) -> Result<Vec<u8>, Error> {
+    let start = u32::try_from(time.start.num_milliseconds()).expect("start time to be positive and not overflow");
+    let length = u32::try_from((time.end - time.start).num_milliseconds()).expect("clip length to be positive and not overflow");
     let mut reader = hound::WavReader::open(path).wrap_err("error opening a cached track")?;
     let spec = reader.spec();
     reader
-        .seek(spec.sample_rate * seconds.start)
+        .seek(spec.sample_rate * start / 1000)
         .wrap_err("error seeking within a cached track")?;
     let mut buf = Vec::new();
     let cursor = std::io::Cursor::new(&mut buf);
     let mut writer = hound::WavWriter::new(cursor, spec).wrap_err("error creating a WAV writer")?;
-    for _ in 0..(spec.sample_rate * (seconds.end - seconds.start)) {
+    for _ in 0..(spec.sample_rate * length / 1000) {
         let left = reader
             .samples::<i16>()
             .next()
@@ -116,8 +118,8 @@ pub async fn clip(
     config: &Config,
     track_id: u32,
     preview: &str,
-    seconds: Range<u32>,
+    time: Range<chrono::Duration>,
 ) -> Result<Vec<u8>, Error> {
     let path = ensure_cached(config, track_id, preview).await?;
-    tokio::task::spawn_blocking(move || blocking_clip_track(path, seconds)).await?
+    tokio::task::spawn_blocking(move || blocking_clip_track(path, time)).await?
 }

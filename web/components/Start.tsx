@@ -1,16 +1,15 @@
-import useSWR from "swr";
-import { fetcher, newGame } from "../fetcher";
+import useSWR, { useSWRConfig } from "swr";
+import { fetchGame, newGame } from "../fetcher";
 import { useNavigate, Link } from "react-router-dom";
 import { Error, Loading } from "./Placeholder";
 import { Nav } from "./Nav";
 
 export function Start() {
-    const { data: game, isLoading: gameIsLoading, error: gameError } = useSWR("/game", fetcher);
-    const { data: dailyGame, isLoading: dailyIsLoading, error: dailyError } = useSWR("/game/daily", fetcher);
+    const { data: game, error: gameError } = useSWR("/game", fetchGame);
+    const { data: dailyGame, error: dailyError } = useSWR("/game/daily", fetchGame);
     if (gameError) return <Error error={gameError} />;
     if (dailyError) return <Error error={dailyError} />;
-    if (gameIsLoading) return <Loading />;
-    if (dailyIsLoading) return <Loading />;
+    if (game === undefined || dailyGame === undefined) return <Loading />;
     const buttons = [];
     if (game !== null && game.won === null) {
         buttons.push(<ResumeButton key="resume" />);
@@ -37,7 +36,13 @@ function ResumeButton() {
 
 function DailyButton() {
     const navigate = useNavigate();
-    const click = () => newGame({ daily: true }).then(() => navigate("/game"));
+    const { mutate } = useSWRConfig();
+    const click = async () => {
+        // `/game` and `/game/daily` refer to the same thing here, so update both caches
+        const game = await mutate("/game", newGame({ daily: true }), { revalidate: false });
+        await mutate("/game/daily", game, { revalidate: false });
+        navigate("/game")
+    };
     return <button onClick={click} className="start_button">
         <i className="start_button__icon fa-solid fa-fw fa-calendar-day"></i>
         <span className="start_button__title">Daily</span>

@@ -26,18 +26,19 @@ pub async fn clip(
     db: &mut DbConn,
     config: &Config,
     track_id: deezer::Id,
-    seconds: std::ops::Range<u32>,
+    time: std::ops::Range<chrono::Duration>,
 ) -> Result<Vec<u8>, Error> {
     let preview_url = sqlx::query_scalar!(
         "SELECT preview_url FROM track WHERE id = $1",
         i32::from(track_id),
     ).fetch_one(db).await.wrap_err("error querying track preview URL")?;
-    music::clip(config, track_id.0, &preview_url, seconds).await
+    music::clip(config, track_id.0, &preview_url, time).await
         .wrap_err("error clipping music")
 }
 
 /// Track metadata returned as part of game objects in the API.
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Meta {
     /// The track's Deezer ID
     id: deezer::Id,
