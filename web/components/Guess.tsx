@@ -1,4 +1,4 @@
-import { Track } from "../fetcher";
+import { Track } from "../api";
 import { SongSearch } from "./SongSearch";
 
 export function WrongGuess({ track }: { track: Track }) {

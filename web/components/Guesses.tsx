@@ -1,4 +1,4 @@
-import { Game } from "../fetcher";
+import { Game } from "../api";
 import { WrongGuess, SkippedGuess, EmptyGuess, NewGuess } from "./Guess";
 
 export function Guesses({ game }: { game: Game }) {

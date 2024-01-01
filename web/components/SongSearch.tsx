@@ -1,23 +1,25 @@
 import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
-import { Track, fetchTracks, newGuess } from "../fetcher";
+import { Track, fetchTracks, newGuess } from "../api";
+import { useDebounce } from "../utils";
 
 export function SongSearch() {
     const [q, setQ] = useState("");
+    const debouncedQ = useDebounce(q, 200);
     const [id, setId] = useState<number | null>(null);
     const [active, setActive] = useState(false);
     const { data, error } = useSWR(
-        active ? `/track/search?${query({ q })}` : null,
+        active ? `/track/search?${query({ q: debouncedQ })}` : null,
         fetchTracks,
     );
     let results;
     if (!active || q === "") {
         results = null;
     } else if (error) {
-        results = <SearchResultsPlaceholder message={error} />;
-    } else if (data === undefined) {
+        results = <SearchResultsPlaceholder message={error.toString()} />;
+    } else if (data === undefined || (data.tracks.length === 0 && q !== debouncedQ)) {
         results = <SearchResultsPlaceholder message="Loading..." />;
-    } else if (data.tracks.length == 0) {
+    } else if (data.tracks.length === 0) {
         results = <SearchResultsPlaceholder message="No results found." />;
     } else {
         results = <SearchResults tracks={data.tracks} setQ={setQ} setId={setId} />;
@@ -96,6 +98,7 @@ function SkipButton() {
     const click = async () => {
         await mutate("/game", newGuess(null), { revalidate: false });
     };
+    // FIXME: Add styling for these buttons
     return (
         <button className="guess_button guess_button--skip" onClick={click}>
             Skip

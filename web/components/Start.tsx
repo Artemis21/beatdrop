@@ -1,5 +1,5 @@
 import useSWR, { useSWRConfig } from "swr";
-import { fetchGame, newGame } from "../fetcher";
+import { fetchGame, newGame } from "../api";
 import { useNavigate, Link } from "react-router-dom";
 import { Error, Loading } from "./Placeholder";
 import { Nav } from "./Nav";

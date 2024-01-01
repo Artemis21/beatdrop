@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import { fetchGame } from "../fetcher";
+import { fetchGame } from "../api";
 import { Loading, Error } from "./Placeholder";
 import { Guesses } from "./Guesses";
 import { Nav } from "./Nav";

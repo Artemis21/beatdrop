@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import { fetchBlob, Game } from "../fetcher";
+import { fetchBlob, Game } from "../api";
 import { Error, Loading } from "./Placeholder";
 import { useState } from "react";
 
@@ -72,6 +72,7 @@ function Controls({
         0,
         ...game.constants.musicClipMillis.slice(0, game.guesses.length + 1),
     ];
+    // FIXME: these forward/backward buttons don't seem to work very well
     return (
         <div className="controls">
             <BackButton currentTime={currentTime} audio={audio} seekPoints={seekPoints} />
