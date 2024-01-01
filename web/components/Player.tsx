@@ -1,20 +1,36 @@
 import useSWR from "swr";
-import { fetchBlob, Game } from "../api";
+import { fetchAudio, Game } from "../api";
 import { Error, Loading } from "./Placeholder";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function Player({ game }: { game: Game }) {
-    const { data, error } = useSWR("/game/clip", fetchBlob);
+    const { data: audio, error } = useSWR("/game/clip", fetchAudio);
+    const [seek, setSeek] = useState(0);
+    const [paused, setPaused] = useState(true);
     const [currentTime, setCurrentTime] = useState(0);
+    useEffect(() => {
+        if (error || audio === undefined) return;
+        audio.currentTime = seek / 1000;
+        if (!paused) audio.play();
+        const handleTimeUpdate = () => setCurrentTime(audio.currentTime * 1000);
+        audio.addEventListener("timeupdate", handleTimeUpdate);
+        return () => {
+            audio.removeEventListener("timeupdate", handleTimeUpdate);
+            audio.pause();
+        };
+    }, [seek, paused, audio]);
     if (error) return <Error error={error} />;
-    if (data === undefined) return <Loading />;
-    const url = URL.createObjectURL(data);
-    const audio = new Audio(url);
-    audio.ontimeupdate = () => setCurrentTime(audio.currentTime * 1000);
+    if (audio === undefined) return <Loading />;
     return (
         <>
             <TrackBar currentTime={currentTime} game={game} />
-            <Controls currentTime={currentTime} audio={audio} game={game} />
+            <Controls
+                currentTime={currentTime}
+                setSeek={setSeek}
+                paused={paused}
+                setPaused={setPaused}
+                game={game}
+            />
         </>
     );
 }
@@ -61,25 +77,37 @@ function LockedSegment() {
 
 function Controls({
     currentTime,
-    audio,
+    setSeek,
+    paused,
+    setPaused,
     game,
 }: {
     currentTime: number;
-    audio: HTMLMediaElement;
+    setSeek: (_: number) => void;
+    paused: boolean;
+    setPaused: (_: boolean) => void;
     game: Game;
 }) {
     const seekPoints = [
         0,
         ...game.constants.musicClipMillis.slice(0, game.guesses.length + 1),
     ];
-    // FIXME: these forward/backward buttons don't seem to work very well
     return (
         <div className="controls">
-            <BackButton currentTime={currentTime} audio={audio} seekPoints={seekPoints} />
-            <PlayButton audio={audio} />
+            <BackButton
+                currentTime={currentTime}
+                setSeek={setSeek}
+                seekPoints={seekPoints}
+            />
+            <PlayButton
+                currentTime={currentTime}
+                setSeek={setSeek}
+                paused={paused}
+                setPaused={setPaused}
+            />
             <ForwardButton
                 currentTime={currentTime}
-                audio={audio}
+                setSeek={setSeek}
                 seekPoints={seekPoints}
             />
         </div>
@@ -88,11 +116,11 @@ function Controls({
 
 function BackButton({
     currentTime,
-    audio,
+    setSeek,
     seekPoints,
 }: {
     currentTime: number;
-    audio: HTMLMediaElement;
+    setSeek: (_: number) => void;
     seekPoints: number[];
 }) {
     const icon = <i className="fa-solid fa-fw fa-rotate-left"></i>;
@@ -101,10 +129,7 @@ function BackButton({
         return <div className="control control--disabled">{icon}</div>;
     }
     return (
-        <div
-            className="control control--enabled"
-            onClick={() => audio.fastSeek(seekTo * 1000)}
-        >
+        <div className="control control--enabled" onClick={() => setSeek(seekTo)}>
             {icon}
         </div>
     );
@@ -112,11 +137,11 @@ function BackButton({
 
 function ForwardButton({
     currentTime,
-    audio,
+    setSeek,
     seekPoints,
 }: {
     currentTime: number;
-    audio: HTMLMediaElement;
+    setSeek: (_: number) => void;
     seekPoints: number[];
 }) {
     const icon = <i className="fa-solid fa-fw fa-rotate-right"></i>;
@@ -125,23 +150,33 @@ function ForwardButton({
         return <div className="control control--disabled">{icon}</div>;
     }
     return (
-        <div
-            className="control control--enabled"
-            onClick={() => audio.fastSeek(seekTo * 1000)}
-        >
+        <div className="control control--enabled" onClick={() => setSeek(seekTo)}>
             {icon}
         </div>
     );
 }
 
-function PlayButton({ audio }: { audio: HTMLMediaElement }) {
+function PlayButton({
+    currentTime,
+    paused,
+    setPaused,
+    setSeek,
+}: {
+    currentTime: number;
+    paused: boolean;
+    setPaused: (_: boolean) => void;
+    setSeek: (_: number) => void;
+}) {
     let icon, click;
-    if (audio.paused) {
+    if (paused) {
         icon = <i className="fa-solid fa-fw fa-play"></i>;
-        click = () => audio.play();
+        click = () => setPaused(false);
     } else {
-        icon = <i className="fa-solid fa-fw fa-play"></i>;
-        click = () => audio.pause;
+        icon = <i className="fa-solid fa-fw fa-pause"></i>;
+        click = () => {
+            setPaused(true);
+            setSeek(currentTime);
+        };
     }
     return (
         <div className="control control--enabled control--play" onClick={click}>

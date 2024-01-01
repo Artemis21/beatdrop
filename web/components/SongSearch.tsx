@@ -31,13 +31,16 @@ export function SongSearch() {
         button = <GuessButton guess={id} />;
     }
     return (
-        <div className="guess__title search">
+        <div className="guess__title">
             <div className="search">
                 <input
                     className="search__input"
                     type="search"
                     placeholder="Never Gonna..."
-                    onChange={e => setQ(e.target.value)}
+                    onChange={e => {
+                        setId(null);
+                        setQ(e.target.value);
+                    }}
                     onFocus={() => setActive(true)}
                     onBlur={() => setActive(false)}
                     value={q}
@@ -98,7 +101,6 @@ function SkipButton() {
     const click = async () => {
         await mutate("/game", newGuess(null), { revalidate: false });
     };
-    // FIXME: Add styling for these buttons
     return (
         <button className="guess_button guess_button--skip" onClick={click}>
             Skip

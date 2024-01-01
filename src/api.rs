@@ -229,7 +229,8 @@ async fn search_track(q: &str) -> Result<Json<SearchResults>, Error> {
     if q.is_empty() {
         return Ok(Json(SearchResults::default()));
     }
-    let tracks = deezer::track_search(q).await?;
+    let mut tracks = deezer::track_search(q).await?;
+    tracks.sort_by_key(|track| std::cmp::Reverse(track.rank));
     let meta = tracks.into_iter().take(5).map(From::from).collect();
     Ok(Json(SearchResults { tracks: meta }))
 }

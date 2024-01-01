@@ -32,3 +32,6 @@ rebuild the server every time you change frontend code.
 For production, build in release mode - either `cargo run --release` or
 `cargo build --release` and then run the resulting binary. HMR is not supported in
 production (frontend files are embedded in the binary), but it is otherwise the same.
+
+For frontend development, you should also
+[enable Yarn editor SDKs](https://yarnpkg.com/getting-started/editor-sdks).

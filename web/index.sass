@@ -137,12 +137,15 @@ body
 .guess__title, .start_button__title
   grid-area: title
   font-size: 1.2rem
+  display: flex
+  gap: 0.5rem
 
 .start_button__title
   text-decoration: underline
 
 .search
   position: relative
+  flex-grow: 2
 
 .search__input
   font: inherit
@@ -178,6 +181,20 @@ body
 .search__results__placeholder
   color: #666
   font-style: italic
+
+.guess_button
+  font: inherit
+  border: 0
+  border-radius: 2rem
+  padding: 0.5rem 1rem
+  cursor: pointer
+
+.guess_button--skip
+  background: #ccc
+
+.guess_button--guess
+  background: #282
+  color: #fff
 
 .guess__sub, .start_button__sub
   grid-area: sub

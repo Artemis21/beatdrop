@@ -138,8 +138,10 @@ export async function fetchTracks(key: string): Promise<TrackSearchResults> {
     return await (await endpoint("GET", key)).json();
 }
 
-export async function fetchBlob(key: "/game/clip"): Promise<Blob> {
-    return await (await endpoint("GET", key)).blob();
+export async function fetchAudio(key: "/game/clip"): Promise<HTMLAudioElement> {
+    const blob = await (await endpoint("GET", key)).blob();
+    const url = URL.createObjectURL(blob);
+    return new Audio(url);
 }
 
 /** Update the current account's display name.
