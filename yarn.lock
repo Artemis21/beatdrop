@@ -1441,6 +1441,7 @@ __metadata:
     "@types/react-dom": "npm:^18.2.18"
     bun-types: "npm:latest"
     parcel: "npm:^2.10.3"
+    prettier: "npm:^3.1.1"
     process: "npm:^0.11.10"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
@@ -3062,6 +3063,15 @@ __metadata:
     posthtml-parser: "npm:^0.11.0"
     posthtml-render: "npm:^3.0.0"
   checksum: 0505cb70ece051206ffa932394181372be6390a974fd2f50e4e6fdd5d11e41feffba9a5f5e22809ca42899f79bd489d53ceac1d7ad0d782db9521b578e5b7f5a
+  languageName: node
+  linkType: hard
+
+"prettier@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "prettier@npm:3.1.1"
+  bin:
+    prettier: bin/prettier.cjs
+  checksum: facc944ba20e194ff4db765e830ffbcb642803381f0d2033ed397e79904fa4ccc877dc25ad68f42d36985c01d051c990ca1b905fb83d2d7d65fe69e4386fa1a3
   languageName: node
   linkType: hard
 
