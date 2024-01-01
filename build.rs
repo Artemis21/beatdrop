@@ -24,7 +24,7 @@ fn build_assets(dist: &std::path::Path) {
     }
     // Install parcel
     std::process::Command::new("yarn")
-        .args(["install", "--frozen-lockfile"])
+        .args(["install", "--immutable"])
         .status()
         .expect("failed to run `yarn install`");
     // Build web assets

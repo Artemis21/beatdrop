@@ -7,16 +7,18 @@ export function App() {
     const router = createBrowserRouter([
         {
             path: "/",
-            element: <Start />
+            element: <Start />,
         },
         {
             path: "/game",
-            element: <Game />
+            element: <Game />,
         },
         // TODO: `/start/timed` and `/start/unlimited` routes
         // TODO: handle 404s
     ]);
-    return <StrictMode>
-        <RouterProvider router={router} />
-    </StrictMode>;
+    return (
+        <StrictMode>
+            <RouterProvider router={router} />
+        </StrictMode>
+    );
 }

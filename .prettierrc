@@ -1,0 +1,8 @@
+{
+    "experimentalTernaries": true,
+    "printWidth": 90,
+    "tabWidth": 4,
+    "quoteProps": "consistent",
+    "arrowParens": "avoid",
+    "proseWrap": "always"
+}

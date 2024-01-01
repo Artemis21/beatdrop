@@ -34,9 +34,7 @@ function TrackBar({ currentTime, game }: { currentTime: number; game: Game }) {
             if (timeIntoSegment < 0) timeIntoSegment = 0;
             if (timeIntoSegment > segmentWidth) timeIntoSegment = segmentWidth;
             const progressWidth = (100 * timeIntoSegment) / segmentWidth;
-            segments.push(
-                <UnlockedSegment key={n} progressWidth={progressWidth} />,
-            );
+            segments.push(<UnlockedSegment key={n} progressWidth={progressWidth} />);
         } else {
             segments.push(<LockedSegment key={n} />);
         }
@@ -52,10 +50,7 @@ function TrackBar({ currentTime, game }: { currentTime: number; game: Game }) {
 function UnlockedSegment({ progressWidth }: { progressWidth: number }) {
     return (
         <div className="play_bar__seg play_bar__seg--unlocked">
-            <div
-                className="play_bar__seg__fill"
-                style={{ width: `${progressWidth}%` }}
-            />
+            <div className="play_bar__seg__fill" style={{ width: `${progressWidth}%` }} />
         </div>
     );
 }
@@ -79,11 +74,7 @@ function Controls({
     ];
     return (
         <div className="controls">
-            <BackButton
-                currentTime={currentTime}
-                audio={audio}
-                seekPoints={seekPoints}
-            />
+            <BackButton currentTime={currentTime} audio={audio} seekPoints={seekPoints} />
             <PlayButton audio={audio} />
             <ForwardButton
                 currentTime={currentTime}
@@ -109,7 +100,10 @@ function BackButton({
         return <div className="control control--disabled">{icon}</div>;
     }
     return (
-        <div className="control control--enabled" onClick={() => audio.fastSeek(seekTo * 1000)}>
+        <div
+            className="control control--enabled"
+            onClick={() => audio.fastSeek(seekTo * 1000)}
+        >
             {icon}
         </div>
     );
@@ -130,7 +124,10 @@ function ForwardButton({
         return <div className="control control--disabled">{icon}</div>;
     }
     return (
-        <div className="control control--enabled" onClick={() => audio.fastSeek(seekTo * 1000)}>
+        <div
+            className="control control--enabled"
+            onClick={() => audio.fastSeek(seekTo * 1000)}
+        >
             {icon}
         </div>
     );

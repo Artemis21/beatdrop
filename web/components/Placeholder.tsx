@@ -5,5 +5,5 @@ export function Loading() {
 }
 
 export function Error({ error }) {
-    return <div className="error">{ error.toString() }</div>;
+    return <div className="error">{error.toString()}</div>;
 }

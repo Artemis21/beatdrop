@@ -20,15 +20,13 @@ export function SongSearch() {
     } else if (data.tracks.length == 0) {
         results = <SearchResultsPlaceholder message="No results found." />;
     } else {
-        results = (
-            <SearchResults tracks={data.tracks} setQ={setQ} setId={setId} />
-        );
+        results = <SearchResults tracks={data.tracks} setQ={setQ} setId={setId} />;
     }
     let button;
     if (id === null) {
-        button = <SkipButton />
+        button = <SkipButton />;
     } else {
-        button = <GuessButton guess={id} />
+        button = <GuessButton guess={id} />;
     }
     return (
         <div className="guess__title search">
@@ -75,7 +73,8 @@ function SearchResults({
                     <button
                         className="search__results__result"
                         key={track.id}
-                        onMouseDown={click}>
+                        onMouseDown={click}
+                    >
                         {displayName}
                     </button>
                 );
@@ -97,7 +96,11 @@ function SkipButton() {
     const click = async () => {
         await mutate("/game", newGuess(null), { revalidate: false });
     };
-    return <button className="guess_button guess_button--skip" onClick={click}>Skip</button>;
+    return (
+        <button className="guess_button guess_button--skip" onClick={click}>
+            Skip
+        </button>
+    );
 }
 
 function GuessButton({ guess }: { guess: number }) {
@@ -105,5 +108,9 @@ function GuessButton({ guess }: { guess: number }) {
     const click = async () => {
         await mutate("/game", newGuess(guess), { revalidate: false });
     };
-    return <button className="guess_button guess_button--guess" onClick={click}>Guess</button>
+    return (
+        <button className="guess_button guess_button--guess" onClick={click}>
+            Guess
+        </button>
+    );
 }

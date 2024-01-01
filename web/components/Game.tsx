@@ -11,16 +11,18 @@ export function Game() {
     const navigate = useNavigate();
     if (error) return <Error error={error} />;
     if (data === undefined) return <Loading />;
-    if (data === null ) {
+    if (data === null) {
         navigate("/");
         return <Loading />;
     }
     // TODO: handle completed games, or game === null
-    return <>
-        <Nav />
-        <div className="guesses">
-            <Guesses game={data} />
-            <Player game={data} />
-        </div>
-    </>;
+    return (
+        <>
+            <Nav />
+            <div className="guesses">
+                <Guesses game={data} />
+                <Player game={data} />
+            </div>
+        </>
+    );
 }

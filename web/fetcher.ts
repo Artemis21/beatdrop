@@ -86,9 +86,7 @@ async function endpoint(
     }
     if (!response.ok) {
         const text = await response.text();
-        throw new Error(
-            `API Error ${response.status} ${response.statusText}\n${text}`,
-        );
+        throw new Error(`API Error ${response.status} ${response.statusText}\n${text}`);
     }
     return response;
 }
@@ -127,15 +125,11 @@ async function ensureLoggedIn() {
     await login();
 }
 
-export async function fetchAccount(
-    key: "/account/me",
-): Promise<Account | null> {
+export async function fetchAccount(key: "/account/me"): Promise<Account | null> {
     return await (await endpoint("GET", key)).json();
 }
 
-export async function fetchGame(
-    key: "/game" | "/game/daily",
-): Promise<Game | null> {
+export async function fetchGame(key: "/game" | "/game/daily"): Promise<Game | null> {
     return await (await endpoint("GET", key)).json();
 }
 
