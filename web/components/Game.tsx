@@ -4,6 +4,7 @@ import { Loading, Error } from "./Placeholder";
 import { Guesses } from "./Guesses";
 import { Nav } from "./Nav";
 import { Player } from "./Player";
+import { GameOver } from "./GameOver";
 import { useNavigate } from "react-router-dom";
 
 export function Game() {
@@ -15,14 +16,21 @@ export function Game() {
         navigate("/");
         return <Loading />;
     }
-    // TODO: handle completed games, or game === null
-    return (
-        <>
-            <Nav />
+    let game;
+    if (data.won === null) {
+        game = (
             <div className="guesses">
                 <Guesses game={data} />
                 <Player game={data} />
             </div>
+        );
+    } else {
+        game = <GameOver game={data} />;
+    }
+    return (
+        <>
+            <Nav />
+            {game}
         </>
     );
 }

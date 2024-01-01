@@ -2,6 +2,7 @@ import useSWR from "swr";
 import { fetchAudio, Game } from "../api";
 import { Error, Loading } from "./Placeholder";
 import { useEffect, useState } from "react";
+import { Icon } from "./Icon";
 
 export function Player({ game }: { game: Game }) {
     const { data: audio, error } = useSWR("/game/clip", fetchAudio);
@@ -123,7 +124,7 @@ function BackButton({
     setSeek: (_: number) => void;
     seekPoints: number[];
 }) {
-    const icon = <i className="fa-solid fa-fw fa-rotate-left"></i>;
+    const icon = <Icon icon="rotate-left" />;
     const seekTo = seekPoints.filter(time => time < currentTime).pop();
     if (seekTo === undefined) {
         return <div className="control control--disabled">{icon}</div>;
@@ -144,7 +145,7 @@ function ForwardButton({
     setSeek: (_: number) => void;
     seekPoints: number[];
 }) {
-    const icon = <i className="fa-solid fa-fw fa-rotate-right"></i>;
+    const icon = <Icon icon="rotate-right" />;
     const seekTo = seekPoints.filter(time => time > currentTime).shift();
     if (seekTo === undefined) {
         return <div className="control control--disabled">{icon}</div>;
@@ -169,10 +170,10 @@ function PlayButton({
 }) {
     let icon, click;
     if (paused) {
-        icon = <i className="fa-solid fa-fw fa-play"></i>;
+        icon = "play";
         click = () => setPaused(false);
     } else {
-        icon = <i className="fa-solid fa-fw fa-pause"></i>;
+        icon = "pause";
         click = () => {
             setPaused(true);
             setSeek(currentTime);
@@ -180,7 +181,7 @@ function PlayButton({
     }
     return (
         <div className="control control--enabled control--play" onClick={click}>
-            {icon}
+            <Icon icon={icon} />
         </div>
     );
 }

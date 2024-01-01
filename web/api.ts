@@ -240,7 +240,7 @@ export type Guess = {
 export type Track = {
     id: number;
     title: string;
-    link: FunctionStringCallback;
+    link: string;
     artistName: string;
     albumName: string;
     albumCover: string;

@@ -1,4 +1,5 @@
 import { Track } from "../api";
+import { Icon } from "./Icon";
 import { SongSearch } from "./SongSearch";
 
 export function WrongGuess({ track }: { track: Track }) {
@@ -14,7 +15,7 @@ export function WrongGuess({ track }: { track: Track }) {
 export function SkippedGuess() {
     return (
         <div className="guess guess--skip">
-            <i className="guess__thumb fa-solid fa-fw fa-forward"></i>
+            <Icon className="guess__thumb" icon="forward" />
             <span className="guess__title">Skipped</span>
         </div>
     );
@@ -23,7 +24,7 @@ export function SkippedGuess() {
 export function EmptyGuess() {
     return (
         <div className="guess guess--empty">
-            <i className="guess__thumb fa-solid fa-fw fa-question"></i>
+            <Icon className="guess__thumb" icon="question" />
             <span className="guess__title">-------- -----</span>
             <span className="guess__sub">--- -------</span>
         </div>
