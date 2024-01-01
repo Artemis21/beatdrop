@@ -77,6 +77,20 @@ pub async fn track_search(q: &str) -> Result<Vec<Track>, Error> {
     Ok(data.data)
 }
 
+/// Fetch a track by ID, returning None if we could not deserialise the response (eg. not found).
+pub async fn track(id: Id) -> Result<Option<Track>, Error> {
+    let url = format!("{API_URL}/track/{id}");
+    CLIENT
+        .get(&url)
+        .send()
+        .await
+        .wrap_err("error fetching track")?
+        .json()
+        .await
+        // assume that if we failed to deserialise the track, it was a "not found" response
+        .map_or_else(|_| Ok(None), |track| Ok(Some(track)))
+}
+
 /// A helper for serde deserialisation of API responses which are wrapped in
 /// an object with a single `data` field.
 #[derive(Debug, Deserialize)]

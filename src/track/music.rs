@@ -22,7 +22,9 @@ impl From<&crate::Config> for Config {
 /// Transcode a downloaded track from MP3 to WAV, and save it (blocking).
 fn blocking_save_track(path: std::path::PathBuf, mp3_data: &[u8]) -> Result<(), Error> {
     let mut decoder = minimp3::Decoder::new(std::io::Cursor::new(mp3_data));
-    let first_frame = decoder.next_frame().wrap_err("error reading first frame of MP3")?;
+    let first_frame = decoder
+        .next_frame()
+        .wrap_err("error reading first frame of MP3")?;
     let wav_spec = hound::WavSpec {
         channels: u16::try_from(first_frame.channels).wrap_err("invalid channel count")?,
         sample_rate: u32::try_from(first_frame.sample_rate).wrap_err("negative sample rate")?,
@@ -81,9 +83,14 @@ async fn ensure_cached(
 }
 
 /// Get a clip from a track (blocking).
-fn blocking_clip_track(path: std::path::PathBuf, time: Range<chrono::Duration>) -> Result<Vec<u8>, Error> {
-    let start = u32::try_from(time.start.num_milliseconds()).expect("start time to be positive and not overflow");
-    let length = u32::try_from((time.end - time.start).num_milliseconds()).expect("clip length to be positive and not overflow");
+fn blocking_clip_track(
+    path: std::path::PathBuf,
+    time: Range<chrono::Duration>,
+) -> Result<Vec<u8>, Error> {
+    let start = u32::try_from(time.start.num_milliseconds())
+        .expect("start time to be positive and not overflow");
+    let length = u32::try_from((time.end - time.start).num_milliseconds())
+        .expect("clip length to be positive and not overflow");
     let mut reader = hound::WavReader::open(path).wrap_err("error opening a cached track")?;
     let spec = reader.spec();
     reader

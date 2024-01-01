@@ -30,8 +30,11 @@ fn build_assets(dist: &std::path::Path) {
     // Build web assets
     std::process::Command::new("yarn")
         .args([
-            "run", "parcel", "build",
-            "--dist-dir", &dist.to_string_lossy(),
+            "run",
+            "parcel",
+            "build",
+            "--dist-dir",
+            &dist.to_string_lossy(),
             "--no-source-maps",
         ])
         .status()
@@ -46,8 +49,14 @@ fn asset_routes(dist: &std::path::Path) -> String {
         if !path.is_file() {
             panic!("unexpected non-file in dist: {path:?}");
         }
-        let file = path.file_name().expect("file has no name").to_string_lossy();
-        let ext = path.extension().expect("file has no extension").to_string_lossy();
+        let file = path
+            .file_name()
+            .expect("file has no name")
+            .to_string_lossy();
+        let ext = path
+            .extension()
+            .expect("file has no extension")
+            .to_string_lossy();
         let rel_path = dist.join(file.to_string());
         let rel_path = rel_path.to_string_lossy();
         branches.push(format!(

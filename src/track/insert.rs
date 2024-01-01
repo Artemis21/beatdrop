@@ -1,8 +1,22 @@
 //! Database queries for inserting and updating music data in the database.
 use crate::{
-    deezer::{Album, Artist, Genre, Track, self},
+    deezer::{self, Album, Artist, Genre, Track},
     DbConn, Error, ResultExt,
 };
+
+/// Insert a track into the database, or update it if it already exists.
+///
+/// Also inserts or updates objects the track references.
+pub async fn track_with_refs(db: &mut DbConn, track_data: &Track) -> Result<(), Error> {
+    let album_data = deezer::album(track_data.album.id).await?;
+    album(db, &album_data).await?;
+    for genre_data in &*album_data.genres {
+        genre(db, genre_data).await?;
+        album_genre(db, album_data.id, genre_data.id).await?;
+    }
+    artist(db, &track_data.artist).await?;
+    track(db, track_data).await
+}
 
 /// Insert a track into the database, or update it if it already exists.
 ///
@@ -42,7 +56,8 @@ pub async fn album(db: &mut DbConn, album: &Album) -> Result<(), Error> {
         album.cover,
     )
     .execute(db)
-    .await.wrap_err("error inserting album")?;
+    .await
+    .wrap_err("error inserting album")?;
     Ok(())
 }
 
@@ -58,7 +73,8 @@ pub async fn genre(db: &mut DbConn, genre: &Genre) -> Result<(), Error> {
         genre.picture,
     )
     .execute(db)
-    .await.wrap_err("error inserting genre")?;
+    .await
+    .wrap_err("error inserting genre")?;
     Ok(())
 }
 
@@ -67,14 +83,19 @@ pub async fn genre(db: &mut DbConn, genre: &Genre) -> Result<(), Error> {
 /// The referenced album and genre must already exist in the database.
 ///
 /// If the relationship already exists, nothing will be done.
-pub async fn album_genre(db: &mut DbConn, album_id: deezer::Id, genre_id: deezer::Id) -> Result<(), Error> {
+pub async fn album_genre(
+    db: &mut DbConn,
+    album_id: deezer::Id,
+    genre_id: deezer::Id,
+) -> Result<(), Error> {
     sqlx::query!(
         "INSERT INTO album_genre (album_id, genre_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
         i32::from(album_id),
         i32::from(genre_id),
     )
     .execute(db)
-    .await.wrap_err("error inserting album-genre relationship")?;
+    .await
+    .wrap_err("error inserting album-genre relationship")?;
     Ok(())
 }
 
@@ -92,6 +113,7 @@ pub async fn artist(db: &mut DbConn, artist: &Artist) -> Result<(), Error> {
         artist.picture,
     )
     .execute(db)
-    .await.wrap_err("error inserting artist")?;
+    .await
+    .wrap_err("error inserting artist")?;
     Ok(())
 }

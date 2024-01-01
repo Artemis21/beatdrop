@@ -140,6 +140,7 @@ export async function fetchGame(
 }
 
 export async function fetchTracks(key: string): Promise<TrackSearchResults> {
+    await new Promise(resolve => window.setTimeout(resolve, 1000));
     return await (await endpoint("GET", key)).json();
 }
 

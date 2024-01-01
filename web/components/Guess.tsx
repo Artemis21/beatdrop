@@ -27,6 +27,8 @@ export function EmptyGuess() {
 export function NewGuess() {
     return <div className="guess guess--active">
         <SongSearch />
-        <span className="guess__sub"></span>
+        <div className="guess__sub guess__sub--hint">
+            Start typing above for suggestions
+        </div>
     </div>;
 }

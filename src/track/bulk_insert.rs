@@ -1,8 +1,8 @@
 //! Efficiently insert multiple tracks into the database.
-use std::collections::HashSet;
 use super::insert;
+use std::collections::HashSet;
 
-use crate::{DbConn, Error, ResultExt, deezer};
+use crate::{deezer, DbConn, Error, ResultExt};
 
 /// A helper for efficiently inserting multiple tracks into the database.
 pub struct BulkInserter<'a> {
@@ -68,10 +68,10 @@ impl<'a> BulkInserter<'a> {
         if self.inserted_album_ids.contains(&album_id) {
             return Ok(true);
         }
-        let exists = sqlx::query_scalar!(
-            "SELECT 1 FROM album WHERE id = $1",
-            i32::from(album_id),
-        ).fetch_optional(&mut *self.db).await.wrap_err("error querying if album exists")?;
+        let exists = sqlx::query_scalar!("SELECT 1 FROM album WHERE id = $1", i32::from(album_id),)
+            .fetch_optional(&mut *self.db)
+            .await
+            .wrap_err("error querying if album exists")?;
         Ok(exists.is_some())
     }
 

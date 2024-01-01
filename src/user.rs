@@ -1,4 +1,4 @@
-use crate::{DbConn, Error, ResultExt, database};
+use crate::{database, DbConn, Error, ResultExt};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Utc};
 use hmac::{Hmac, Mac};
@@ -20,7 +20,8 @@ impl From<&crate::Config> for AuthConfig {
     fn from(config: &crate::Config) -> Self {
         Self {
             key: Hmac::new_from_slice(config.session_key.as_bytes()).expect("any length is valid"),
-            session_lifetime: chrono::Duration::from_std(config.session_lifetime.into()).expect("session lifetime to fit in chrono::Duration"),
+            session_lifetime: chrono::Duration::from_std(config.session_lifetime.into())
+                .expect("session lifetime to fit in chrono::Duration"),
         }
     }
 }

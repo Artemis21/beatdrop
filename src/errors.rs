@@ -1,7 +1,11 @@
 //! Handle errors that may occur while handling a request.
 use std::io::Cursor;
 
-use rocket::{Request, response::{self, Responder}, Response, http::{ContentType, Status}};
+use rocket::{
+    http::{ContentType, Status},
+    response::{self, Responder},
+    Request, Response,
+};
 
 /// Any error that may occur while handling a request.
 #[derive(Debug)]
@@ -23,7 +27,7 @@ impl<'r> Responder<'r, 'static> for Error {
             Self::Internal(e) => {
                 eprintln!("{e:?}");
                 (Status::InternalServerError, "internal server error")
-            },
+            }
             Self::Auth(e) => (rocket::http::Status::Unauthorized, e),
             Self::InvalidForm(e) => (rocket::http::Status::BadRequest, e),
             Self::NotFound(e) => (rocket::http::Status::NotFound, e),

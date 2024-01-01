@@ -1,14 +1,14 @@
 import { Game } from "../fetcher";
-import { WrongGuess, SkippedGuess, NewGuess, EmptyGuess } from "./Guess";
+import { WrongGuess, SkippedGuess, EmptyGuess, NewGuess } from "./Guess";
 
 export function Guesses({ game }: { game: Game }) {
     const { guesses, constants } = game;
     const guessEls = [];
     for (let n = 0; n < constants.maxGuesses; n++) {
         if (n < guesses.length) {
-            const guess = guesses[n];
-            if (guess !== null ) {
-                guessEls.push(<WrongGuess track={guess.track} key={n} />);
+            const guess = guesses[n].track;
+            if (guess !== null) {
+                guessEls.push(<WrongGuess track={guess} key={n} />);
             } else {
                 guessEls.push(<SkippedGuess key={n} />);
             }

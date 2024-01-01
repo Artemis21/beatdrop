@@ -68,7 +68,8 @@ async fn try_pick_genre(
         i32::from(genre_id)
     )
     .fetch_optional(db)
-    .await.wrap_err("error querying for a random track in the specified genre")?;
+    .await
+    .wrap_err("error querying for a random track in the specified genre")?;
     Ok(track.map(From::from))
 }
 
@@ -79,7 +80,8 @@ pub async fn daily(db: &mut DbConn) -> Result<deezer::Id, Error> {
         WHERE for_day = TIMEZONE('utc', NOW())::DATE"
     )
     .fetch_optional(&mut *db)
-    .await.wrap_err("error querying for the daily track")?;
+    .await
+    .wrap_err("error querying for the daily track")?;
     if let Some(track) = track {
         return Ok(track.into());
     }
@@ -89,7 +91,8 @@ pub async fn daily(db: &mut DbConn) -> Result<deezer::Id, Error> {
         i32::from(track)
     )
     .execute(db)
-    .await.wrap_err("error inserting the daily track")?;
+    .await
+    .wrap_err("error inserting the daily track")?;
     Ok(track)
 }
 

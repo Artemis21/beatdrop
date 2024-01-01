@@ -7,7 +7,7 @@ use rocket::{
 };
 use serde::Serialize;
 
-use crate::{deezer, track, DbConn, Error, User, database};
+use crate::{database, deezer, track, DbConn, Error, User};
 
 const fn seconds(n: i64) -> chrono::Duration {
     chrono::Duration::milliseconds(n * 1000)
@@ -32,11 +32,19 @@ struct ConstantsSerde {
 
 impl<const N: usize> From<&GenericConstants<N>> for ConstantsSerde {
     fn from(vals: &GenericConstants<N>) -> Self {
-        let music_clip_millis = vals.music_clip_lengths.iter()
-            .map(|duration| u64::try_from(duration.num_milliseconds()).expect("clip lengths to be positive"))
+        let music_clip_millis = vals
+            .music_clip_lengths
+            .iter()
+            .map(|duration| {
+                u64::try_from(duration.num_milliseconds()).expect("clip lengths to be positive")
+            })
             .collect();
-        let timed_unlock_millis = vals.timed_unlock_times.iter()
-            .map(|duration| u64::try_from(duration.num_milliseconds()).expect("unlock times to be positive"))
+        let timed_unlock_millis = vals
+            .timed_unlock_times
+            .iter()
+            .map(|duration| {
+                u64::try_from(duration.num_milliseconds()).expect("unlock times to be positive")
+            })
             .collect();
         Self {
             max_guesses: N,
@@ -89,7 +97,7 @@ pub const CONSTANTS: Constants = Constants {
 #[derive(sqlx::FromRow)]
 pub struct Row {
     id: i32,
-    #[allow(dead_code)]  // we use `SELECT *` to reduce boilerplate
+    #[allow(dead_code)] // we use `SELECT *` to reduce boilerplate
     account_id: i32,
     started_at: DateTime<Utc>,
     is_daily: bool,
@@ -156,7 +164,8 @@ impl Row {
             self.id,
         )
         .fetch_all(db)
-        .await.wrap_err("error querying game guesses")?;
+        .await
+        .wrap_err("error querying game guesses")?;
         Ok(Game {
             game: self,
             guesses,
@@ -192,7 +201,11 @@ impl Game {
         })
     }
 
-    pub async fn new_guess(&mut self, db: &mut DbConn, track_id: Option<deezer::Id>) -> Result<(), Error> {
+    pub async fn new_guess(
+        &mut self,
+        db: &mut DbConn,
+        track_id: Option<deezer::Id>,
+    ) -> Result<(), Error> {
         let guess = sqlx::query_as!(
             Guess,
             "INSERT INTO game_guess (game_id, track_id, guess_number)
@@ -203,7 +216,8 @@ impl Game {
             i32::try_from(self.guesses.len()).expect("guess count to fit in i32"),
         )
         .fetch_one(db)
-        .await.wrap_err("error inserting game guess")?;
+        .await
+        .wrap_err("error inserting game guess")?;
         self.guesses.push(guess);
         Ok(())
     }

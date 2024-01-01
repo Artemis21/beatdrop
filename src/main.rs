@@ -11,32 +11,40 @@
 //! Database connection and queries are handled by [SQLx](https://github.com/launchbadge/sqlx).
 //! The server also connects to the [Deezer](https://developers.deezer.com/api) API to fetch
 //! music data.
-#![warn(clippy::all, clippy::pedantic, clippy::nursery, missing_docs, clippy::missing_docs_in_private_items)]
-#![allow(clippy::no_effect_underscore_binding)]  // triggered by Rocket macro
+#![warn(
+    clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
+    missing_docs,
+    clippy::missing_docs_in_private_items
+)]
+#![allow(clippy::no_effect_underscore_binding)] // triggered by Rocket macro
 use rocket::fairing::AdHoc;
 use rocket_db_pools::Database;
 
 mod api;
 // TODO: Document/refactor these modules
+mod database;
+mod deezer;
+mod errors;
 #[allow(clippy::missing_docs_in_private_items)]
 mod game;
+mod track;
 #[allow(clippy::missing_docs_in_private_items)]
 mod user;
-mod deezer;
-mod track;
-mod errors;
-mod database;
 mod web;
 
-use user::{AuthConfig, User};
-use game::Game;
-use errors::{Error, ResultExt};
 use database::{Db, DbConn};
+use errors::{Error, ResultExt};
+use game::Game;
+use user::{AuthConfig, User};
 
 /// Read config, set up the database and build the Rocket instance.
 #[rocket::launch]
 fn rocket() -> _ {
-    let config_file = std::env::args().nth(1).unwrap_or_else(|| "beatdrop.toml".into());
+    let config_file = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "beatdrop.toml".into());
     let config: Config = config::Config::builder()
         .add_source(config::File::new(&config_file, config::FileFormat::Toml))
         .add_source(config::Environment::with_prefix("BEATDROP"))

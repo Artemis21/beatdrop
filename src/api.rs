@@ -186,6 +186,11 @@ async fn new_guess(
     mut game: Game,
     body: Json<NewGuess>,
 ) -> Result<Json<game::Response>, Error> {
+    if let Some(track_id) = body.track_id {
+        if !track::exists(&mut db, track_id).await? {
+            return Err(Error::NotFound("given track ID does not exist"));
+        }
+    }
     if !game.is_over() {
         game.new_guess(&mut db, body.track_id).await?;
         game.end_if_over(&mut db).await?;
@@ -225,6 +230,6 @@ async fn search_track(q: &str) -> Result<Json<SearchResults>, Error> {
         return Ok(Json(SearchResults::default()));
     }
     let tracks = deezer::track_search(q).await?;
-    let meta = tracks.into_iter().map(From::from).collect();
+    let meta = tracks.into_iter().take(5).map(From::from).collect();
     Ok(Json(SearchResults { tracks: meta }))
 }

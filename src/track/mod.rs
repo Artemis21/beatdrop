@@ -1,12 +1,12 @@
 //! Tools for working with the music data in the database.
 use serde::Serialize;
 
-use crate::{DbConn, Error, ResultExt, deezer};
+use crate::{deezer, DbConn, Error, ResultExt};
 
-pub mod pick;
-mod insert;
 mod bulk_insert;
+mod insert;
 mod music;
+pub mod pick;
 
 pub use music::Config;
 
@@ -17,7 +17,10 @@ pub async fn genre(db: &mut DbConn, id: deezer::Id) -> Result<deezer::Genre, Err
         "SELECT id, title AS name, picture_url AS picture FROM genre
         WHERE id = $1",
         i32::from(id),
-    ).fetch_one(db).await.wrap_err("error querying genre")?;
+    )
+    .fetch_one(db)
+    .await
+    .wrap_err("error querying genre")?;
     Ok(genre)
 }
 
@@ -31,8 +34,12 @@ pub async fn clip(
     let preview_url = sqlx::query_scalar!(
         "SELECT preview_url FROM track WHERE id = $1",
         i32::from(track_id),
-    ).fetch_one(db).await.wrap_err("error querying track preview URL")?;
-    music::clip(config, track_id.0, &preview_url, time).await
+    )
+    .fetch_one(db)
+    .await
+    .wrap_err("error querying track preview URL")?;
+    music::clip(config, track_id.0, &preview_url, time)
+        .await
         .wrap_err("error clipping music")
 }
 
@@ -54,6 +61,28 @@ pub struct Meta {
     album_cover: String,
 }
 
+/// Check if the given track exists, and if it is, make sure it is stored in the database.
+pub async fn exists(db: &mut DbConn, id: deezer::Id) -> Result<bool, Error> {
+    let exists_in_database =
+        sqlx::query_scalar!("SELECT 1 FROM track WHERE track.id = $1", i32::from(id))
+            .fetch_optional(&mut *db)
+            .await
+            .wrap_err("error checking if track exists")?
+            .is_some();
+    if exists_in_database {
+        return Ok(true);
+    }
+    match deezer::track(id).await? {
+        Some(track) => {
+            insert::track_with_refs(db, &track)
+                .await
+                .wrap_err("inserting track into database with references")?;
+            Ok(true)
+        }
+        None => Ok(false),
+    }
+}
+
 impl Meta {
     /// Get track metadata from the database by ID.
     pub async fn get(db: &mut DbConn, id: deezer::Id) -> Result<Self, Error> {
@@ -73,7 +102,8 @@ impl Meta {
             i32::from(id),
         )
         .fetch_one(db)
-        .await.wrap_err("error querying track metadata")?;
+        .await
+        .wrap_err("error querying track metadata")?;
         Ok(track)
     }
 }
