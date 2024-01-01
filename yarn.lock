@@ -305,7 +305,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@parcel/core@npm:2.10.3":
+"@parcel/core@npm:2.10.3, @parcel/core@npm:^2.10.3":
   version: 2.10.3
   resolution: "@parcel/core@npm:2.10.3"
   dependencies:
@@ -1241,15 +1241,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 20.10.6
-  resolution: "@types/node@npm:20.10.6"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 6692ccfa8552ef60c4069fda3c8de726c23e8d403cdf788e3c7efa769987e80fbda5f02723dd857f9de7df24a5fa40b3ed4580ec3c5cbac04eba44cf7b2ab1dc
-  languageName: node
-  linkType: hard
-
 "@types/prop-types@npm:*":
   version: 15.7.11
   resolution: "@types/prop-types@npm:15.7.11"
@@ -1281,15 +1272,6 @@ __metadata:
   version: 0.16.8
   resolution: "@types/scheduler@npm:0.16.8"
   checksum: f86de504945b8fc41b1f391f847444d542e2e4067cf7e5d9bfeb5d2d2393d3203b1161bc0ef3b1e104d828dabfb60baf06e8d2c27e27ff7e8258e6e618d8c4ec
-  languageName: node
-  linkType: hard
-
-"@types/ws@npm:*":
-  version: 8.5.10
-  resolution: "@types/ws@npm:8.5.10"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: e9af279b984c4a04ab53295a40aa95c3e9685f04888df5c6920860d1dd073fcc57c7bd33578a04b285b2c655a0b52258d34bee0a20569dca8defb8393e1e5d29
   languageName: node
   linkType: hard
 
@@ -1434,12 +1416,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "beatdrop@workspace:."
   dependencies:
+    "@parcel/core": "npm:^2.10.3"
     "@parcel/transformer-pug": "npm:2.10.3"
     "@parcel/transformer-sass": "npm:2.10.3"
     "@reduxjs/toolkit": "npm:^2.0.1"
     "@types/react": "npm:^18.2.46"
     "@types/react-dom": "npm:^18.2.18"
-    bun-types: "npm:latest"
     parcel: "npm:^2.10.3"
     prettier: "npm:^3.1.1"
     process: "npm:^0.11.10"
@@ -1493,17 +1475,6 @@ __metadata:
   bin:
     browserslist: cli.js
   checksum: 2a331aab90503130043ca41dd5d281fa1e89d5e076d07a2d75e76bf4d693bd56e73d5abcd8c4f39119da6328d450578c216cf1cd5c99b82d8a90a2ae6271b465
-  languageName: node
-  linkType: hard
-
-"bun-types@npm:latest":
-  version: 1.0.20
-  resolution: "bun-types@npm:1.0.20"
-  dependencies:
-    "@types/node": "npm:*"
-    "@types/ws": "npm:*"
-    undici-types: "npm:^5.26.4"
-  checksum: bc005b6321ade81dbacb60a7bca8bc80629d7302f9fdee97e3bf90f150c3bb0ba64a3592464f373d3c9b3f6399b9e3bb48763fbd240b5253ac2bf0cc445263af
   languageName: node
   linkType: hard
 
@@ -3676,20 +3647,6 @@ __metadata:
   version: 0.20.2
   resolution: "type-fest@npm:0.20.2"
   checksum: dea9df45ea1f0aaa4e2d3bed3f9a0bfe9e5b2592bddb92eb1bf06e50bcf98dbb78189668cd8bc31a0511d3fc25539b4cd5c704497e53e93e2d40ca764b10bfc3
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:^5.26.4":
-  version: 5.28.2
-  resolution: "undici-types@npm:5.28.2"
-  checksum: f687d633943abee22715f2629cfdf01d32089b14ce92d317c4b7b8a2dd2dab9027f17abda278d10075a2f2add039e05dcc99f23fc99647ad3a94d1580a3652df
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~5.26.4":
-  version: 5.26.5
-  resolution: "undici-types@npm:5.26.5"
-  checksum: bb673d7876c2d411b6eb6c560e0c571eef4a01c1c19925175d16e3a30c4c428181fb8d7ae802a261f283e4166a0ac435e2f505743aa9e45d893f9a3df017b501
   languageName: node
   linkType: hard
 

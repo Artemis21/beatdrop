@@ -1,7 +1,7 @@
 {
     "name": "beatdrop",
     "license": "MIT",
-    "source": "web/index.pug",
+    "source": "web/index.html",
     "targets": {
         "default": {
             "publicUrl": "/static"
@@ -9,10 +9,11 @@
     },
     "browserslist": "> 0.5%, last 2 versions, not dead",
     "devDependencies": {
-        "@parcel/transformer-pug": "2.10.3",
+        "@parcel/core": "^2.10.3",
         "@parcel/transformer-sass": "2.10.3",
         "parcel": "^2.10.3",
         "prettier": "^3.1.1",
+        "process": "^0.11.10",
         "react": "^18.2.0",
         "react-dom": "^18.2.0"
     },
