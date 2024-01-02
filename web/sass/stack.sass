@@ -1,0 +1,114 @@
+// Stack: an abstract UI layout used for the start menu and as a list of guesses.
+
+.stack
+  display: flex
+  flex-direction: column
+  flex-grow: 1
+  flex-shrink: 1
+  gap: 1rem
+  position: relative
+  width: $body-width
+  overflow-y: auto
+
+  // this is webkit only, but firefox scrollbars are nice anyway
+  &::-webkit-scrollbar
+    width: 18px
+    background: transparent
+
+  &::-webkit-scrollbar-thumb
+    width: 18px
+    background: #8888
+    border: 6px solid white
+    border-radius: 9px
+    background-clip: padding-box
+    &:hover
+      background: #888a
+
+  &:before, &:after
+    content: ""
+    position: sticky
+    left: 0
+    right: 0
+    opacity: 0
+    margin-bottom: -1rem // remove flex gap
+
+  &:before
+    top: 0
+    box-shadow: 0 0 20px 10px #0006
+
+  &:after
+    bottom: 0
+    box-shadow: 0 0 20px 10px #0006
+
+.stack--scroll-up:before
+  opacity: 1
+
+.stack--scroll-down:after
+  opacity: 1
+
+.stack__item
+  border: 0
+  text-decoration: none
+  font: inherit
+  text-align: left
+  border-radius: 1rem
+  padding: 1rem
+  gap: 0 1rem
+  display: grid
+  grid-template-areas: "thumb title" "thumb sub"
+  grid-template-columns: min-content 1fr
+  align-items: center
+  background: #eee
+  color: #000
+
+.stack__item--button
+  cursor: pointer
+  transition: transform 100ms linear
+  margin: 0 2.5%
+
+  &:hover
+    transform: scale(1.05)
+
+.stack__scroll_trigger
+  min-height: 1px
+  overflow-y: clip
+  margin-bottom: -1rem // remove flex gap
+
+.stack__item--bad
+  background: #f004
+  color: #400
+
+.stack__item--active
+  gap: 1rem 0
+  grid-template-columns: 0 1fr
+  background: #fff
+  border: 4px solid black
+
+// .guess--skip
+//   grid-template-rows: 1fr min-content
+
+.stack__item__thumb
+  grid-area: thumb
+  border-radius: 1rem
+  width: 4.5rem
+  font-size: 2rem
+  text-align: center
+
+.stack__item__title
+  grid-area: title
+  font-size: 1.2rem
+  display: flex
+  gap: 0.5rem
+
+.stack__item--button .stack__item__title
+  text-decoration: underline
+
+.stack__item__sub
+  grid-area: sub
+  font-style: italic
+
+.stack__item__sub--hint
+  opacity: 0.6
+  font-size: 0.85rem
+  text-align: center
+  font-style: normal

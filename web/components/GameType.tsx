@@ -2,36 +2,29 @@ import { Game } from "../api";
 import { Icon } from "./Icon";
 
 export function GameType({ game }: { game: Game }) {
+    let icon, name, genre;
     if (game.isDaily) {
-        return (
-            <>
-                <Icon icon="calendar-day" />
-                Daily
-            </>
-        );
-    }
-    let mode;
-    if (game.isTimed) {
-        mode = (
-            <>
-                <Icon icon="clock" />
-                Timed
-            </>
-        );
+        icon = "calendar-day";
+        name = "Daily";
+    } else if (game.isTimed) {
+        icon = "clock";
+        name = "Timed";
     } else {
-        mode = (
-            <>
-                <Icon icon="infinity" />
-                Unlimited
-            </>
-        );
+        icon = "infinity";
+        name = "Unlimited";
     }
     if (game.genre !== null) {
-        return (
+        genre = (
             <>
-                {mode} <Icon icon="music" /> {game.genre.name}
+                <Icon icon="music" /> {game.genre.name}
             </>
         );
     }
-    return mode;
+    return (
+        <>
+            <Icon icon={icon} />
+            {name}
+            {genre}
+        </>
+    );
 }

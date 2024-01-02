@@ -1,28 +1,37 @@
-import { useState } from "react";
-import useSWR, { useSWRConfig } from "swr";
-import { Track, fetchTracks, newGuess } from "../api";
-import { useDebounce } from "../utils";
+import { useEffect, useState } from "react";
+import { useSWRConfig } from "swr";
+import { Track, searchTracks, newGuess } from "../api";
+import { useThrottled } from "../utils";
 
 export function SongSearch() {
     const [q, setQ] = useState("");
-    const debouncedQ = useDebounce(q, 200);
+    const debouncedQ = useThrottled(q, 500);
     const [id, setId] = useState<number | null>(null);
     const [active, setActive] = useState(false);
-    const { data, error } = useSWR(
-        active ? `/track/search?${query({ q: debouncedQ })}` : null,
-        fetchTracks,
-    );
+    const [tracks, setTracks] = useState<Track[] | undefined>(undefined);
+    const [error, setError] = useState<any | null>(null);
+    useEffect(() => {
+        if (debouncedQ !== "") {
+            let cancelled = false;
+            searchTracks(debouncedQ)
+                .then(data => cancelled || setTracks(data.tracks))
+                .catch(error => cancelled || setError(error));
+            return () => {
+                cancelled = true;
+            };
+        }
+    }, [debouncedQ]);
     let results;
     if (!active || q === "") {
         results = null;
     } else if (error) {
         results = <SearchResultsPlaceholder message={error.toString()} />;
-    } else if (data === undefined || (data.tracks.length === 0 && q !== debouncedQ)) {
+    } else if (tracks === undefined || (tracks.length === 0 && q !== debouncedQ)) {
         results = <SearchResultsPlaceholder message="Loading..." />;
-    } else if (data.tracks.length === 0) {
+    } else if (tracks.length === 0) {
         results = <SearchResultsPlaceholder message="No results found." />;
     } else {
-        results = <SearchResults tracks={data.tracks} setQ={setQ} setId={setId} />;
+        results = <SearchResults tracks={tracks} setQ={setQ} setId={setId} />;
     }
     let button;
     if (id === null) {
@@ -31,7 +40,7 @@ export function SongSearch() {
         button = <GuessButton guess={id} />;
     }
     return (
-        <div className="guess__title">
+        <div className="stack__item__title">
             <div className="search">
                 <input
                     className="search__input"
@@ -50,11 +59,6 @@ export function SongSearch() {
             {button}
         </div>
     );
-}
-
-function query(params: Record<string, any>) {
-    const query = new URLSearchParams(params);
-    return query.toString();
 }
 
 function SearchResults({

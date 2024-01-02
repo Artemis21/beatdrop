@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Icon } from "./Icon";
 
 export function Player({ game }: { game: Game }) {
+    // FIXME: Invalidate cache when game changes
     const { data: audio, error } = useSWR("/game/clip", fetchAudio);
     const [seek, setSeek] = useState(0);
     const [paused, setPaused] = useState(true);
@@ -13,7 +14,16 @@ export function Player({ game }: { game: Game }) {
         if (error || audio === undefined) return;
         audio.currentTime = seek / 1000;
         if (!paused) audio.play();
-        const handleTimeUpdate = () => setCurrentTime(audio.currentTime * 1000);
+        const handleTimeUpdate = () => {
+            setCurrentTime(audio.currentTime * 1000);
+            if (audio.currentTime === audio.duration) {
+                setPaused(true);
+                setSeek(audio.duration * 1000);
+                setCurrentTime(audio.duration * 1000);
+            } else if (!(seek === audio.duration && audio.currentTime === 0)) {
+                setCurrentTime(audio.currentTime * 1000);
+            }
+        };
         audio.addEventListener("timeupdate", handleTimeUpdate);
         return () => {
             audio.removeEventListener("timeupdate", handleTimeUpdate);
@@ -27,6 +37,7 @@ export function Player({ game }: { game: Game }) {
             <TrackBar currentTime={currentTime} game={game} />
             <Controls
                 currentTime={currentTime}
+                duration={audio.duration * 1000}
                 setSeek={setSeek}
                 paused={paused}
                 setPaused={setPaused}
@@ -78,12 +89,14 @@ function LockedSegment() {
 
 function Controls({
     currentTime,
+    duration,
     setSeek,
     paused,
     setPaused,
     game,
 }: {
     currentTime: number;
+    duration: number;
     setSeek: (_: number) => void;
     paused: boolean;
     setPaused: (_: boolean) => void;
@@ -102,6 +115,7 @@ function Controls({
             />
             <PlayButton
                 currentTime={currentTime}
+                duration={duration}
                 setSeek={setSeek}
                 paused={paused}
                 setPaused={setPaused}
@@ -159,11 +173,13 @@ function ForwardButton({
 
 function PlayButton({
     currentTime,
+    duration,
     paused,
     setPaused,
     setSeek,
 }: {
     currentTime: number;
+    duration: number;
     paused: boolean;
     setPaused: (_: boolean) => void;
     setSeek: (_: number) => void;
@@ -171,7 +187,10 @@ function PlayButton({
     let icon, click;
     if (paused) {
         icon = "play";
-        click = () => setPaused(false);
+        click = () => {
+            if (currentTime === duration) setSeek(0);
+            setPaused(false);
+        };
     } else {
         icon = "pause";
         click = () => {

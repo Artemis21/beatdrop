@@ -18,5 +18,5 @@ export function Guesses({ game }: { game: Game }) {
             guessEls.push(<EmptyGuess key={n} />);
         }
     }
-    return guessEls;
+    return <div className="stack">{guessEls}</div>;
 }

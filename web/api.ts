@@ -133,15 +133,16 @@ export async function fetchGame(key: "/game" | "/game/daily"): Promise<Game | nu
     return await (await endpoint("GET", key)).json();
 }
 
-export async function fetchTracks(key: string): Promise<TrackSearchResults> {
-    await new Promise(resolve => window.setTimeout(resolve, 1000));
-    return await (await endpoint("GET", key)).json();
-}
-
 export async function fetchAudio(key: "/game/clip"): Promise<HTMLAudioElement> {
     const blob = await (await endpoint("GET", key)).blob();
     const url = URL.createObjectURL(blob);
     return new Audio(url);
+}
+
+export async function searchTracks(q: string): Promise<TrackSearchResults> {
+    const query = new URLSearchParams({ q });
+    const path = `/track/search?${query.toString()}`;
+    return await (await endpoint("GET", path)).json();
 }
 
 /** Update the current account's display name.

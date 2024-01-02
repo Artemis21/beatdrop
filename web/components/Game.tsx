@@ -19,10 +19,10 @@ export function Game() {
     let game;
     if (data.won === null) {
         game = (
-            <div className="guesses">
+            <>
                 <Guesses game={data} />
                 <Player game={data} />
-            </div>
+            </>
         );
     } else {
         game = <GameOver game={data} />;

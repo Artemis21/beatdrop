@@ -6,65 +6,75 @@ import { Nav } from "./Nav";
 import { Icon } from "./Icon";
 
 export function Start() {
-    const { data: game, error: gameError } = useSWR("/game", fetchGame);
-    const { data: dailyGame, error: dailyError } = useSWR("/game/daily", fetchGame);
-    if (gameError) return <Error error={gameError} />;
-    if (dailyError) return <Error error={dailyError} />;
-    if (game === undefined || dailyGame === undefined) return <Loading />;
+    const { data, error } = useSWR("/game", fetchGame);
+    const { data: daily, error: dailyError } = useSWR("/game/daily", fetchGame);
+    if (error || dailyError) return <Error error={error || dailyError} />;
+    if (data === undefined || daily === undefined) return <Loading />;
     const buttons = [];
-    if (game !== null && game.won === null) {
+    if (data !== null && data.won === null) {
         buttons.push(<ResumeButton key="resume" />);
-    } else {
-        if (dailyGame === null) {
+        if (daily !== null && daily.won !== null) {
+            // Show daily results, since this isn't starting a new game.
             buttons.push(<DailyButton key="daily" />);
         }
+    } else {
+        buttons.push(<DailyButton key="daily" />);
         buttons.push(<UnlimitedButton key="unlimited" />);
         buttons.push(<TimedButton key="timed" />);
     }
     return (
         <>
             <Nav />
-            <div className="start_buttons">{buttons}</div>
+            <div className="stack">{buttons}</div>
         </>
     );
 }
 
 function ResumeButton() {
     return (
-        <Link to="/game" className="start_button">
-            <Icon className="start_button__icon" icon="play" />
-            <span className="start_button__title">Resume</span>
-            <span className="start_button__sub">You have an ongoing game</span>
+        <Link to="/game" className="stack__item stack__item--button">
+            <Icon className="stack__item__thumb" icon="play" />
+            <span className="stack__item__title">Resume</span>
+            <span className="stack__item__sub">You have an ongoing game</span>
         </Link>
     );
 }
 
 function DailyButton() {
+    const { data, error } = useSWR("/game/daily", fetchGame);
     const navigate = useNavigate();
     const { mutate } = useSWRConfig();
+    if (error) return <Error error={error} />;
+    if (data === undefined) return <Loading />;
+    // If there is a daily game ongoing, return null since we already have a resume button.
+    if (data !== null && data.won === null) return null;
     const click = async () => {
-        // `/game` and `/game/daily` refer to the same thing here, so update both caches
-        const game = await mutate("/game", newGame({ daily: true }), {
-            revalidate: false,
-        });
-        await mutate("/game/daily", game, { revalidate: false });
+        if (data === null) {
+            // `/game` and `/game/daily` refer to the same thing here, so update both caches
+            const game = await mutate("/game", newGame({ daily: true }), {
+                revalidate: false,
+            });
+            await mutate("/game/daily", game, { revalidate: false });
+        }
         navigate("/game");
     };
     return (
-        <button onClick={click} className="start_button">
-            <Icon className="start_button__icon" icon="calendar-day" />
-            <span className="start_button__title">Daily</span>
-            <span className="start_button__sub">A new game every day</span>
+        <button onClick={click} className="stack__item stack__item--button">
+            <Icon className="stack__item__thumb" icon="calendar-day" />
+            <span className="stack__item__title">Daily</span>
+            <span className="stack__item__sub">
+                {data === null ? "Play today's daily game" : "See your results for today"}
+            </span>
         </button>
     );
 }
 
 function UnlimitedButton() {
     return (
-        <Link to="/start/unlimited" className="start_button">
-            <Icon className="start_button__icon" icon="infinity" />
-            <span className="start_button__title">Unlimited</span>
-            <span className="start_button__sub">
+        <Link to="/start/unlimited" className="stack__item stack__item--button">
+            <Icon className="stack__item__thumb" icon="infinity" />
+            <span className="stack__item__title">Unlimited</span>
+            <span className="stack__item__sub">
                 Play as much as you want, or select a genre
             </span>
         </Link>
@@ -73,10 +83,10 @@ function UnlimitedButton() {
 
 function TimedButton() {
     return (
-        <Link to="/start/timed" className="start_button">
-            <Icon className="start_button__icon" icon="clock" />
-            <span className="start_button__title">Timed</span>
-            <span className="start_button__sub">
+        <Link to="/start/timed" className="stack__item stack__item--button">
+            <Icon className="stack__item__thumb" icon="clock" />
+            <span className="stack__item__title">Timed</span>
+            <span className="stack__item__sub">
                 Submit your guess before the timer runs out!
             </span>
         </Link>
