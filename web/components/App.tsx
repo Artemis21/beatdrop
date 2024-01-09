@@ -15,6 +15,7 @@ export function App() {
         },
         // TODO: `/start/timed` and `/start/unlimited` routes
         // TODO: handle 404s
+        // TODO: error handling
     ]);
     return (
         <StrictMode>

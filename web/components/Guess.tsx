@@ -1,6 +1,7 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Track } from "../api";
-import { Icon } from "./Icon";
 import { SongSearch } from "./SongSearch";
+import { faForward, faQuestion } from "@fortawesome/free-solid-svg-icons";
 
 export function WrongGuess({ track }: { track: Track }) {
     return (
@@ -15,7 +16,7 @@ export function WrongGuess({ track }: { track: Track }) {
 export function SkippedGuess() {
     return (
         <div className="stack__item stack__item--skip">
-            <Icon className="stack__item__thumb" icon="forward" />
+            <FontAwesomeIcon className="stack__item__thumb" icon={faForward} fixedWidth />
             <span className="stack__item__title">Skipped</span>
         </div>
     );
@@ -24,7 +25,11 @@ export function SkippedGuess() {
 export function EmptyGuess() {
     return (
         <div className="stack__item stack__item--empty">
-            <Icon className="stack__item__thumb" icon="question" />
+            <FontAwesomeIcon
+                className="stack__item__thumb"
+                icon={faQuestion}
+                fixedWidth
+            />
             <span className="stack__item__title">-------- -----</span>
             <span className="stack__item__sub">--- -------</span>
         </div>

@@ -3,7 +3,13 @@ import { fetchGame, newGame } from "../api";
 import { useNavigate, Link } from "react-router-dom";
 import { Error, Loading } from "./Placeholder";
 import { Nav } from "./Nav";
-import { Icon } from "./Icon";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+    faCalendarDay,
+    faClock,
+    faInfinity,
+    faPlay,
+} from "@fortawesome/free-solid-svg-icons";
 
 export function Start() {
     const { data, error } = useSWR("/game", fetchGame);
@@ -33,7 +39,7 @@ export function Start() {
 function ResumeButton() {
     return (
         <Link to="/game" className="stack__item stack__item--button">
-            <Icon className="stack__item__thumb" icon="play" />
+            <FontAwesomeIcon className="stack__item__thumb" icon={faPlay} fixedWidth />
             <span className="stack__item__title">Resume</span>
             <span className="stack__item__sub">You have an ongoing game</span>
         </Link>
@@ -60,7 +66,11 @@ function DailyButton() {
     };
     return (
         <button onClick={click} className="stack__item stack__item--button">
-            <Icon className="stack__item__thumb" icon="calendar-day" />
+            <FontAwesomeIcon
+                className="stack__item__thumb"
+                icon={faCalendarDay}
+                fixedWidth
+            />
             <span className="stack__item__title">Daily</span>
             <span className="stack__item__sub">
                 {data === null ? "Play today's daily game" : "See your results for today"}
@@ -72,7 +82,11 @@ function DailyButton() {
 function UnlimitedButton() {
     return (
         <Link to="/start/unlimited" className="stack__item stack__item--button">
-            <Icon className="stack__item__thumb" icon="infinity" />
+            <FontAwesomeIcon
+                className="stack__item__thumb"
+                icon={faInfinity}
+                fixedWidth
+            />
             <span className="stack__item__title">Unlimited</span>
             <span className="stack__item__sub">
                 Play as much as you want, or select a genre
@@ -84,7 +98,7 @@ function UnlimitedButton() {
 function TimedButton() {
     return (
         <Link to="/start/timed" className="stack__item stack__item--button">
-            <Icon className="stack__item__thumb" icon="clock" />
+            <FontAwesomeIcon className="stack__item__thumb" icon={faClock} fixedWidth />
             <span className="stack__item__title">Timed</span>
             <span className="stack__item__sub">
                 Submit your guess before the timer runs out!

@@ -133,8 +133,10 @@ export async function fetchGame(key: "/game" | "/game/daily"): Promise<Game | nu
     return await (await endpoint("GET", key)).json();
 }
 
-export async function fetchAudio(key: "/game/clip"): Promise<HTMLAudioElement> {
-    const blob = await (await endpoint("GET", key)).blob();
+export type GameClipKey = ["/game/clip", number];
+
+export async function fetchAudio(key: GameClipKey): Promise<HTMLAudioElement> {
+    const blob = await (await endpoint("GET", key[0])).blob();
     const url = URL.createObjectURL(blob);
     return new Audio(url);
 }

@@ -1,12 +1,20 @@
 import useSWR from "swr";
-import { fetchAudio, Game } from "../api";
+import { fetchAudio, Game, GameClipKey } from "../api";
 import { Error, Loading } from "./Placeholder";
 import { useEffect, useState } from "react";
-import { Icon } from "./Icon";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+    faPause,
+    faPlay,
+    faRotateLeft,
+    faRotateRight,
+} from "@fortawesome/free-solid-svg-icons";
 
 export function Player({ game }: { game: Game }) {
-    // FIXME: Invalidate cache when game changes
-    const { data: audio, error } = useSWR("/game/clip", fetchAudio);
+    const { data: audio, error } = useSWR<HTMLAudioElement, any, GameClipKey>(
+        ["/game/clip", game.guesses.length],
+        fetchAudio,
+    );
     const [seek, setSeek] = useState(0);
     const [paused, setPaused] = useState(true);
     const [currentTime, setCurrentTime] = useState(0);
@@ -137,7 +145,7 @@ function BackButton({
     setSeek: (_: number) => void;
     seekPoints: number[];
 }) {
-    const icon = <Icon icon="rotate-left" />;
+    const icon = <FontAwesomeIcon icon={faRotateLeft} fixedWidth />;
     const seekTo = seekPoints.filter(time => time < currentTime).pop();
     if (seekTo === undefined) {
         return <div className="control control--disabled">{icon}</div>;
@@ -158,7 +166,7 @@ function ForwardButton({
     setSeek: (_: number) => void;
     seekPoints: number[];
 }) {
-    const icon = <Icon icon="rotate-right" />;
+    const icon = <FontAwesomeIcon icon={faRotateRight} fixedWidth />;
     const seekTo = seekPoints.filter(time => time > currentTime).shift();
     if (seekTo === undefined) {
         return <div className="control control--disabled">{icon}</div>;
@@ -185,13 +193,13 @@ function PlayButton({
 }) {
     let icon, click;
     if (paused) {
-        icon = "play";
+        icon = faPlay;
         click = () => {
             if (currentTime === duration) setSeek(0);
             setPaused(false);
         };
     } else {
-        icon = "pause";
+        icon = faPause;
         click = () => {
             setPaused(true);
             setSeek(currentTime);
@@ -199,7 +207,7 @@ function PlayButton({
     }
     return (
         <div className="control control--enabled control--play" onClick={click}>
-            <Icon icon={icon} />
+            <FontAwesomeIcon icon={icon} fixedWidth />
         </div>
     );
 }
