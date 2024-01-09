@@ -2,6 +2,7 @@
 use std::ops::Range;
 
 use eyre::OptionExt;
+use rocket::tokio::{fs, task};
 
 use crate::{deezer::CLIENT, Error, ResultExt};
 
@@ -14,6 +15,7 @@ pub struct Config {
 impl From<&crate::Config> for Config {
     fn from(config: &crate::Config) -> Self {
         let music_dir = config.media_dir.join("music");
+        // fine to use blocking API here, only called on startup
         std::fs::create_dir_all(&music_dir).expect("failed to create music directory");
         Self { music_dir }
     }
@@ -63,7 +65,7 @@ async fn download_track(config: &Config, track_id: u32, preview: &str) -> Result
         .await
         .wrap_err("error reading the response for a track preview download")?;
     let path = config.music_dir.join(format!("{}.mp3", track_id));
-    tokio::task::spawn_blocking(move || blocking_save_track(path, &data)).await?
+    task::spawn_blocking(move || blocking_save_track(path, &data)).await?
 }
 
 /// Ensure that a given track is cached, and return the path.
@@ -73,7 +75,7 @@ async fn ensure_cached(
     preview: &str,
 ) -> Result<std::path::PathBuf, Error> {
     let path = config.music_dir.join(format!("{}.mp3", track_id));
-    if !tokio::fs::try_exists(&path)
+    if !fs::try_exists(&path)
         .await
         .wrap_err("error checking if a track is cached")?
     {
@@ -128,5 +130,5 @@ pub async fn clip(
     time: Range<chrono::Duration>,
 ) -> Result<Vec<u8>, Error> {
     let path = ensure_cached(config, track_id, preview).await?;
-    tokio::task::spawn_blocking(move || blocking_clip_track(path, time)).await?
+    task::spawn_blocking(move || blocking_clip_track(path, time)).await?
 }

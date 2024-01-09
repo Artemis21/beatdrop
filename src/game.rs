@@ -7,7 +7,10 @@ use rocket::{
 };
 use serde::Serialize;
 
-use crate::{database, deezer, track, DbConn, Error, User};
+use crate::{
+    database::{self, Db},
+    deezer, track, DbConn, Error, User,
+};
 
 const fn seconds(n: i64) -> chrono::Duration {
     chrono::Duration::milliseconds(n * 1000)
@@ -367,7 +370,7 @@ impl<'r> FromRequest<'r> for Game {
     type Error = Error;
 
     async fn from_request(req: &'r rocket::Request<'_>) -> request::Outcome<Self, Self::Error> {
-        let mut db = try_outcome!(database::extract(req).await);
+        let mut db = try_outcome!(req.guard::<Db>().await);
         let user = try_outcome!(req.guard::<crate::User>().await);
         match user.current_game(&mut db).await {
             Ok(Some(game)) => request::Outcome::Success(game),
@@ -395,7 +398,7 @@ impl<'r> FromRequest<'r> for Maybe {
     type Error = Error;
 
     async fn from_request(req: &'r rocket::Request<'_>) -> request::Outcome<Self, Self::Error> {
-        let mut db = try_outcome!(database::extract(req).await);
+        let mut db = try_outcome!(req.guard::<Db>().await);
         let user = try_outcome!(req.guard::<crate::User>().await);
         match user.current_game(&mut db).await {
             Ok(game) => request::Outcome::Success(Self(game)),

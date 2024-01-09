@@ -32,8 +32,9 @@ struct NewAccount {
 
 /// Create a new account.
 #[post("/account/me")]
-async fn new_account(mut db: Db) -> Result<Json<NewAccount>, Error> {
+async fn new_account(mut db: Db<'_>) -> Result<Json<NewAccount>, Error> {
     let (_user, secret) = User::create(&mut db).await?;
+    db.commit().await?;
     Ok(Json(NewAccount { login: secret }))
 }
 
@@ -54,12 +55,13 @@ struct Session {
 /// Create a new session using a secret login token.
 #[post("/session/secret", data = "<body>")]
 async fn login_secret(
-    mut db: Db,
+    mut db: Db<'_>,
     auth: &State<AuthConfig>,
     body: Json<SecretLogin>,
 ) -> Result<Json<Session>, Error> {
     let user = User::from_login(&body.login, &mut db).await?;
     let session = user.session_token(auth);
+    db.commit().await?;
     Ok(Json(Session { session }))
 }
 
@@ -79,20 +81,22 @@ struct UpdateAccount {
 /// Update the authenticated user's account.
 #[patch("/account/me", data = "<body>")]
 async fn update_account(
-    mut db: Db,
+    mut db: Db<'_>,
     mut user: User,
     body: Json<UpdateAccount>,
 ) -> Result<Json<User>, Error> {
     if let Some(display_name) = &body.display_name {
         user = user.set_display_name(Some(display_name), &mut db).await?;
     }
+    db.commit().await?;
     Ok(Json(user))
 }
 
 /// Delete the authenticated user's account.
 #[delete("/account/me")]
-async fn delete_account(mut db: Db, user: User) -> Result<(), Error> {
+async fn delete_account(mut db: Db<'_>, user: User) -> Result<(), Error> {
     user.delete(&mut db).await?;
+    db.commit().await?;
     Ok(())
 }
 
@@ -113,7 +117,7 @@ struct NewGame {
 /// Begin a new game for the authenticated user.
 #[post("/game", data = "<body>")]
 async fn new_game(
-    mut db: Db,
+    mut db: Db<'_>,
     user: User,
     body: Json<NewGame>,
 ) -> Result<Json<game::Response>, Error> {
@@ -149,25 +153,31 @@ async fn new_game(
         track_id,
     )
     .await?;
-    Ok(Json(game.into_response(&mut db).await?))
+    let game = game.into_response(&mut db).await?;
+    db.commit().await?;
+    Ok(Json(game))
 }
 
 /// Get the authenticated user's active or most recent game.
 #[get("/game")]
 async fn get_active_game(
-    mut db: Db,
+    mut db: Db<'_>,
     game: game::Maybe,
 ) -> Result<Json<Option<game::Response>>, Error> {
-    Ok(Json(game.into_response(&mut db).await?))
+    let game = game.into_response(&mut db).await?;
+    db.commit().await?;
+    Ok(Json(game))
 }
 
 /// Get the authenticated user's current daily game, if any.
 #[get("/game/daily")]
-async fn get_daily_game(mut db: Db, user: User) -> Result<Json<Option<game::Response>>, Error> {
-    match user.daily_game(&mut db).await? {
-        Some(game) => Ok(Json(Some(game.into_response(&mut db).await?))),
-        None => Ok(Json(None)),
-    }
+async fn get_daily_game(mut db: Db<'_>, user: User) -> Result<Json<Option<game::Response>>, Error> {
+    let game = match user.daily_game(&mut db).await? {
+        Some(game) => Some(game.into_response(&mut db).await?),
+        None => None,
+    };
+    db.commit().await?;
+    Ok(Json(game))
 }
 
 /// The request body for making a guess.
@@ -182,7 +192,7 @@ struct NewGuess {
 /// Does nothing if the game is already over.
 #[post("/game/guess", data = "<body>")]
 async fn new_guess(
-    mut db: Db,
+    mut db: Db<'_>,
     mut game: Game,
     body: Json<NewGuess>,
 ) -> Result<Json<game::Response>, Error> {
@@ -195,13 +205,15 @@ async fn new_guess(
         game.new_guess(&mut db, body.track_id).await?;
         game.end_if_over(&mut db).await?;
     }
-    Ok(Json(game.into_response(&mut db).await?))
+    let game = game.into_response(&mut db).await?;
+    db.commit().await?;
+    Ok(Json(game))
 }
 
 /// Get the music clip a user is allowed to listen to for a game.
 #[get("/game/clip?<seek>")]
 async fn get_clip(
-    mut db: Db,
+    mut db: Db<'_>,
     track_config: &State<track::Config>,
     game: Game,
     seek: Option<u32>,
@@ -211,9 +223,9 @@ async fn get_clip(
     if start >= end {
         return Err(Error::InvalidForm("cannot seek past end of unlocked music"));
     }
-    track::clip(&mut db, track_config, game.track_id, start..end)
-        .await
-        .map(|bytes| (ContentType::new("audio", "wav"), bytes))
+    let bytes = track::clip(&mut db, track_config, game.track_id, start..end).await?;
+    db.commit().await?;
+    Ok((ContentType::new("audio", "wav"), bytes))
 }
 
 /// JSON response to a track search query.

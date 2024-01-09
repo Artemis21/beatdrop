@@ -1,17 +1,111 @@
 //! Database connection and migration setup.
-#![allow(clippy::option_if_let_else)] // triggered by Rocket macro
-use rocket::{request::Outcome, Request};
-use rocket_db_pools::{sqlx, Connection, Database};
+#![allow(clippy::option_if_let_else)]
+// triggered by Rocket macro
+use rocket::request::{self, FromRequest, Request};
+use rocket_db_pools::{sqlx, Database};
 
-use crate::{deezer, Error};
+use crate::{deezer, Error, ResultExt};
 
 /// The main (and only) database connection pool.
-#[derive(Database)]
+#[derive(Database, Clone)]
 #[database("main")]
 pub struct Main(sqlx::PgPool);
 
+/// A request guard for getting a database transaction.
+pub struct Transaction<'c> {
+    tx: sqlx::Transaction<'c, sqlx::Postgres>,
+    #[cfg(debug_assertions)]
+    ended: TxEnded,
+}
+
+/// A `Drop` type used to warn when a transaction is dropped without being committed
+/// or rolled back.
+#[cfg(debug_assertions)]
+struct TxEnded {
+    ended: bool,
+    context: String,
+}
+
+#[cfg(debug_assertions)]
+impl TxEnded {
+    fn new(ctx: impl ToString) -> Self {
+        Self {
+            ended: false,
+            context: ctx.to_string(),
+        }
+    }
+
+    fn end(&mut self) {
+        self.ended = true;
+    }
+}
+
+#[cfg(debug_assertions)]
+impl std::ops::Drop for TxEnded {
+    fn drop(&mut self) {
+        if !self.ended {
+            eprintln!(
+                "A transaction for {} was dropped without committing or rolling back!",
+                self.context
+            );
+        }
+    }
+}
+
+impl<'c> std::ops::Deref for Transaction<'c> {
+    type Target = sqlx::Transaction<'c, sqlx::Postgres>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.tx
+    }
+}
+
+impl<'c> std::ops::DerefMut for Transaction<'c> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.tx
+    }
+}
+
+impl Transaction<'_> {
+    pub async fn commit(mut self) -> Result<(), Error> {
+        self.tx
+            .commit()
+            .await
+            .wrap_err("error committing transaction for request")?;
+        #[cfg(debug_assertions)]
+        {
+            self.ended.end();
+        }
+        Ok(())
+    }
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for Transaction<'r> {
+    type Error = Error;
+
+    async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+        let db = Main::fetch(req.rocket())
+            .expect("application is running, so database must be initialised");
+        let tx = db.begin().await;
+        match tx {
+            Ok(tx) => request::Outcome::Success(Self {
+                tx,
+                #[cfg(debug_assertions)]
+                ended: TxEnded::new(req),
+            }),
+            Err(e) => {
+                return request::Outcome::Error((
+                    rocket::http::Status::InternalServerError,
+                    e.into(),
+                ))
+            }
+        }
+    }
+}
+
 /// A request guard for getting a database connection.
-pub type Db = Connection<Main>;
+pub type Db<'c> = Transaction<'c>; // Connection<Main>;
 
 /// The database connection type.
 ///
@@ -26,19 +120,6 @@ pub async fn run_migrations(rocket: rocket::Rocket<rocket::Build>) -> rocket::fa
     } else {
         Err(rocket)
     }
-}
-
-/// Use the request guard to extract a database connection from a request.
-pub async fn extract(req: &Request<'_>) -> Outcome<Db, Error> {
-    req.guard::<Db>().await.map_error(|e| {
-        (
-            e.0,
-            Error::Internal(e.1.map_or_else(
-                || eyre::eyre!("unknown database connection error"),
-                From::from,
-            )),
-        )
-    })
 }
 
 impl From<i32> for deezer::Id {

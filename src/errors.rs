@@ -48,7 +48,7 @@ impl<T: Into<eyre::Report>> From<T> for Error {
 
 impl Error {
     /// Give additional context on what was being attempted if this is an internal error.
-    fn wrap_err(self, msg: &'static str) -> Self {
+    pub fn wrap_err(self, msg: &'static str) -> Self {
         match self {
             Self::Internal(e) => Self::Internal(e.wrap_err(msg)),
             _ => self,

@@ -1,4 +1,4 @@
-use crate::{database, DbConn, Error, ResultExt};
+use crate::{database::Db, DbConn, Error, ResultExt};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Utc};
 use hmac::{Hmac, Mac};
@@ -149,7 +149,7 @@ impl<'r> FromRequest<'r> for User {
     type Error = Error;
 
     async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
-        let mut db = try_outcome!(database::extract(req).await);
+        let mut db = try_outcome!(req.guard::<Db>().await);
         let auth = req
             .rocket()
             .state::<AuthConfig>()
