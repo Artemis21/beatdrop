@@ -243,7 +243,7 @@ export type Track = {
     title: string;
     link: string;
     artistName: string;
-    albumName: string;
+    albumTitle: string;
     albumCover: string;
 };
 

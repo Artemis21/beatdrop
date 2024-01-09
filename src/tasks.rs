@@ -6,9 +6,7 @@ use std::future::Future;
 use clokwerk::{AsyncScheduler, Job, TimeUnits};
 
 /// Spawn a task to take care of running periodic background tasks.
-pub async fn spawn(
-    rocket: rocket::Rocket<rocket::Build>,
-) -> rocket::fairing::Result {
+pub async fn spawn(rocket: rocket::Rocket<rocket::Build>) -> rocket::fairing::Result {
     let Some(db) = database::Main::fetch(&rocket) else {
         eprintln!("couldn't retrieve db pool to set up background tasks");
         return Err(rocket);

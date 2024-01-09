@@ -1,8 +1,7 @@
 import { Game } from "../api";
 import { WrongGuess, SkippedGuess, EmptyGuess, NewGuess } from "./Guess";
 
-export function Guesses({ game }: { game: Game }) {
-    const { guesses, constants } = game;
+export function Guesses({ game: { guesses, constants } }: { game: Game }) {
     const guessEls = [];
     for (let n = 0; n < constants.maxGuesses; n++) {
         if (n < guesses.length) {

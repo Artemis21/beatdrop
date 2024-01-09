@@ -9,7 +9,7 @@ export function GameOver({ game }: { game: Game }) {
     return (
         <>
             <h1>{won ? "You Won!" : "Game Over :("}</h1>
-            <img src={track.albumCover} alt={`Album cover for ${track.albumName}`} />
+            <img src={track.albumCover} alt={`Album cover for ${track.albumTitle}`} />
             <p>
                 The song was <a href={track.link}>{track.title}</a>
             </p>

@@ -48,13 +48,12 @@ export function Player({ game }: { game: Game }) {
 }
 
 function TrackBar({ currentTime, game }: { currentTime: number; game: Game }) {
-    const { guesses, constants } = game;
     const segments = [];
     let columnWidths = "";
     let lastClipLength = 0;
-    const unlockedSegments = guesses.length + 1;
-    for (let n = 0; n < constants.maxGuesses; n++) {
-        const clipLength = constants.musicClipMillis[n];
+    const unlockedSegments = game.guesses.length + 1;
+    for (let n = 0; n < game.constants.maxGuesses; n++) {
+        const clipLength = game.constants.musicClipMillis[n];
         const segmentWidth = clipLength - lastClipLength;
         columnWidths += `${segmentWidth}fr `;
         if (unlockedSegments > n) {
