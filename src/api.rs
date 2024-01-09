@@ -1,8 +1,9 @@
 //! Logic for handling calls to the API routes.
-use crate::{deezer, game, track, AuthConfig, Db, Error, Game, User};
-use rocket::{
-    delete, get, http::ContentType, patch, post, routes, serde::json::Json, Route, State,
+use crate::{
+    database::{Connection, Transaction},
+    deezer, game, track, AuthHeader, Error, Game, User,
 };
+use rocket::{delete, get, http::ContentType, patch, post, routes, serde::json::Json, Route};
 use serde::{Deserialize, Serialize};
 
 /// Collect all the API endpoints.
@@ -32,9 +33,8 @@ struct NewAccount {
 
 /// Create a new account.
 #[post("/account/me")]
-async fn new_account(mut db: Db<'_>) -> Result<Json<NewAccount>, Error> {
-    let (_user, secret) = User::create(&mut db).await?;
-    db.commit().await?;
+async fn new_account(mut conn: Connection) -> Result<Json<NewAccount>, Error> {
+    let (_user, secret) = User::create(&mut conn).await?;
     Ok(Json(NewAccount { login: secret }))
 }
 
@@ -55,20 +55,18 @@ struct Session {
 /// Create a new session using a secret login token.
 #[post("/session/secret", data = "<body>")]
 async fn login_secret(
-    mut db: Db<'_>,
-    auth: &State<AuthConfig>,
+    mut conn: Connection,
     body: Json<SecretLogin>,
 ) -> Result<Json<Session>, Error> {
-    let user = User::from_login(&body.login, &mut db).await?;
-    let session = user.session_token(auth);
-    db.commit().await?;
+    let user = User::from_login(&body.login, &mut conn).await?;
+    let session = user.session_token();
     Ok(Json(Session { session }))
 }
 
 /// Get information on the authenticated user's account.
 #[get("/account/me")]
-const fn get_account(user: User) -> Json<User> {
-    Json(user)
+async fn get_account(mut conn: Connection, auth: AuthHeader<'_>) -> Result<Json<User>, Error> {
+    User::from_session(auth, &mut conn).await.map(Json)
 }
 
 /// The request body for updating an account.
@@ -81,22 +79,24 @@ struct UpdateAccount {
 /// Update the authenticated user's account.
 #[patch("/account/me", data = "<body>")]
 async fn update_account(
-    mut db: Db<'_>,
-    mut user: User,
+    mut tx: Transaction<'_>,
+    auth: AuthHeader<'_>,
     body: Json<UpdateAccount>,
 ) -> Result<Json<User>, Error> {
+    let mut user = User::from_session(auth, &mut tx).await?;
     if let Some(display_name) = &body.display_name {
-        user = user.set_display_name(Some(display_name), &mut db).await?;
+        user = user.set_display_name(Some(display_name), &mut tx).await?;
     }
-    db.commit().await?;
+    tx.commit().await?;
     Ok(Json(user))
 }
 
 /// Delete the authenticated user's account.
 #[delete("/account/me")]
-async fn delete_account(mut db: Db<'_>, user: User) -> Result<(), Error> {
-    user.delete(&mut db).await?;
-    db.commit().await?;
+async fn delete_account(mut tx: Transaction<'_>, auth: AuthHeader<'_>) -> Result<(), Error> {
+    let user = User::from_session(auth, &mut tx).await?;
+    user.delete(&mut tx).await?;
+    tx.commit().await?;
     Ok(())
 }
 
@@ -117,11 +117,12 @@ struct NewGame {
 /// Begin a new game for the authenticated user.
 #[post("/game", data = "<body>")]
 async fn new_game(
-    mut db: Db<'_>,
-    user: User,
+    mut tx: Transaction<'_>,
+    auth: AuthHeader<'_>,
     body: Json<NewGame>,
 ) -> Result<Json<game::Response>, Error> {
-    let last_game = user.current_game(&mut db).await?;
+    let user = User::from_session(auth, &mut tx).await?;
+    let last_game = user.current_game(&mut tx).await?;
     if let Some(last_game) = last_game {
         if !last_game.is_over() {
             return Err(Error::InvalidForm("user still has an ongoing game"));
@@ -133,19 +134,19 @@ async fn new_game(
                 "daily games cannot be timed or have a genre",
             ));
         }
-        if user.has_played_daily(&mut db).await? {
+        if user.has_played_daily(&mut tx).await? {
             return Err(Error::InvalidForm(
                 "user has already played the daily game today",
             ));
         }
-        track::pick::daily(&mut db).await?
+        track::pick::daily(&mut tx).await?
     } else if let Some(genre_id) = body.genre_id {
-        track::pick::genre(&mut db, genre_id).await?
+        track::pick::genre(&mut tx, genre_id).await?
     } else {
-        track::pick::any(&mut db).await?
+        track::pick::any(&mut tx).await?
     };
     let game = Game::create(
-        &mut db,
+        &mut tx,
         user.id,
         body.genre_id,
         body.daily,
@@ -153,30 +154,36 @@ async fn new_game(
         track_id,
     )
     .await?;
-    let game = game.into_response(&mut db).await?;
-    db.commit().await?;
+    let game = game.into_response(&mut tx).await?;
+    tx.commit().await?;
     Ok(Json(game))
 }
 
 /// Get the authenticated user's active or most recent game.
 #[get("/game")]
 async fn get_active_game(
-    mut db: Db<'_>,
-    game: game::Maybe,
+    mut tx: Transaction<'_>,
+    auth: AuthHeader<'_>,
 ) -> Result<Json<Option<game::Response>>, Error> {
-    let game = game.into_response(&mut db).await?;
-    db.commit().await?;
+    let user = User::from_session(auth, &mut tx).await?;
+    let game = match user.current_game(&mut tx).await? {
+        Some(game) => Some(game.into_response(&mut tx).await?),
+        None => None,
+    };
     Ok(Json(game))
 }
 
 /// Get the authenticated user's current daily game, if any.
 #[get("/game/daily")]
-async fn get_daily_game(mut db: Db<'_>, user: User) -> Result<Json<Option<game::Response>>, Error> {
-    let game = match user.daily_game(&mut db).await? {
-        Some(game) => Some(game.into_response(&mut db).await?),
+async fn get_daily_game(
+    mut tx: Transaction<'_>,
+    auth: AuthHeader<'_>,
+) -> Result<Json<Option<game::Response>>, Error> {
+    let user = User::from_session(auth, &mut tx).await?;
+    let game = match user.daily_game(&mut tx).await? {
+        Some(game) => Some(game.into_response(&mut tx).await?),
         None => None,
     };
-    db.commit().await?;
     Ok(Json(game))
 }
 
@@ -192,39 +199,41 @@ struct NewGuess {
 /// Does nothing if the game is already over.
 #[post("/game/guess", data = "<body>")]
 async fn new_guess(
-    mut db: Db<'_>,
-    mut game: Game,
+    mut tx: Transaction<'_>,
+    auth: AuthHeader<'_>,
     body: Json<NewGuess>,
 ) -> Result<Json<game::Response>, Error> {
     if let Some(track_id) = body.track_id {
-        if !track::exists(&mut db, track_id).await? {
+        if !track::exists(&mut tx, track_id).await? {
             return Err(Error::NotFound("given track ID does not exist"));
         }
     }
+    let user = User::from_session(auth, &mut tx).await?;
+    let mut game = user.expect_current_game(&mut tx).await?;
     if !game.is_over() {
-        game.new_guess(&mut db, body.track_id).await?;
-        game.end_if_over(&mut db).await?;
+        game.new_guess(&mut tx, body.track_id).await?;
+        game.end_if_over(&mut tx).await?;
     }
-    let game = game.into_response(&mut db).await?;
-    db.commit().await?;
+    let game = game.into_response(&mut tx).await?;
+    tx.commit().await?;
     Ok(Json(game))
 }
 
 /// Get the music clip a user is allowed to listen to for a game.
 #[get("/game/clip?<seek>")]
 async fn get_clip(
-    mut db: Db<'_>,
-    track_config: &State<track::Config>,
-    game: Game,
+    mut tx: Transaction<'_>,
+    auth: AuthHeader<'_>,
     seek: Option<u32>,
 ) -> Result<(ContentType, Vec<u8>), Error> {
+    let user = User::from_session(auth, &mut tx).await?;
+    let game = user.expect_current_game(&mut tx).await?;
     let end = game.time_unlocked();
     let start = chrono::Duration::milliseconds(seek.unwrap_or(0).into());
     if start >= end {
         return Err(Error::InvalidForm("cannot seek past end of unlocked music"));
     }
-    let bytes = track::clip(&mut db, track_config, game.track_id, start..end).await?;
-    db.commit().await?;
+    let bytes = track::clip(&mut tx, game.track_id, start..end).await?;
     Ok((ContentType::new("audio", "wav"), bytes))
 }
 

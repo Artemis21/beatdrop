@@ -1,17 +1,21 @@
-use crate::{database::Db, DbConn, Error, ResultExt};
+use std::sync::OnceLock;
+
+use crate::{DbConn, Error, ResultExt};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Utc};
 use hmac::{Hmac, Mac};
 use jwt::{SignWithKey, VerifyWithKey};
 use rocket::{
-    outcome::try_outcome,
     request::{self, FromRequest},
     Request,
 };
 use serde::Serialize;
 use sha2::{Digest, Sha512};
 
-pub struct AuthConfig {
+static AUTH_CONFIG: OnceLock<AuthConfig> = OnceLock::new();
+
+#[derive(Debug)]
+struct AuthConfig {
     pub key: Hmac<Sha512>,
     pub session_lifetime: chrono::Duration,
 }
@@ -24,6 +28,12 @@ impl From<&crate::Config> for AuthConfig {
                 .expect("session lifetime to fit in chrono::Duration"),
         }
     }
+}
+
+pub fn init(config: &crate::Config) {
+    AUTH_CONFIG
+        .set(config.into())
+        .expect("user::init must only be called once");
 }
 
 #[derive(Serialize)]
@@ -66,12 +76,12 @@ impl User {
             .map_err(Error::from)
     }
 
-    async fn from_session(
-        session: &str,
-        conf: &AuthConfig,
-        db: &mut DbConn,
-    ) -> Result<Self, Error> {
+    pub async fn from_session(session: AuthHeader<'_>, db: &mut DbConn) -> Result<Self, Error> {
+        let conf = AUTH_CONFIG
+            .get()
+            .expect("User::from_session used before initialisation");
         let claim: AuthClaim = session
+            .0
             .verify_with_key(&conf.key)
             .map_err(|_| Error::Auth("invalid session token"))?;
         if claim.created_at + conf.session_lifetime < Utc::now() {
@@ -103,7 +113,10 @@ impl User {
         }
     }
 
-    pub fn session_token(&self, conf: &AuthConfig) -> String {
+    pub fn session_token(&self) -> String {
+        let conf = AUTH_CONFIG
+            .get()
+            .expect("User::session_token used before initialisation");
         let header = jwt::Header {
             algorithm: jwt::AlgorithmType::Hs512,
             ..Default::default()
@@ -144,23 +157,25 @@ impl User {
     }
 }
 
+pub struct AuthHeader<'r>(&'r str);
+
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for User {
+impl<'r> FromRequest<'r> for AuthHeader<'r> {
     type Error = Error;
 
     async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
-        let mut db = try_outcome!(req.guard::<Db>().await);
-        let auth = req
-            .rocket()
-            .state::<AuthConfig>()
-            .expect("auth config to be present");
-        let Some(session) = req.headers().get_one("Authorization").and_then(|s| s.strip_prefix("Bearer ")) else {
-            return request::Outcome::Error((rocket::http::Status::Unauthorized, Error::Auth("missing session token")));
-        };
-        match Self::from_session(session, auth, &mut db).await {
-            Ok(user) => request::Outcome::Success(user),
-            Err(e) => return request::Outcome::Error((rocket::http::Status::Unauthorized, e)),
-        }
+        req.headers()
+            .get_one("Authorization")
+            .and_then(|s| s.strip_prefix("Bearer "))
+            .map_or_else(
+                || {
+                    request::Outcome::Error((
+                        rocket::http::Status::Unauthorized,
+                        Error::Auth("missing session token"),
+                    ))
+                },
+                |token| request::Outcome::Success(Self(token)),
+            )
     }
 }
 

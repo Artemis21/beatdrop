@@ -8,7 +8,7 @@ mod insert;
 mod music;
 pub mod pick;
 
-pub use music::Config;
+pub use music::init;
 
 /// Get a genre object from the database by ID.
 pub async fn genre(db: &mut DbConn, id: deezer::Id) -> Result<deezer::Genre, Error> {
@@ -27,7 +27,6 @@ pub async fn genre(db: &mut DbConn, id: deezer::Id) -> Result<deezer::Genre, Err
 /// Get a clip of music from a track.
 pub async fn clip(
     db: &mut DbConn,
-    config: &Config,
     track_id: deezer::Id,
     time: std::ops::Range<chrono::Duration>,
 ) -> Result<Vec<u8>, Error> {
@@ -38,7 +37,7 @@ pub async fn clip(
     .fetch_one(db)
     .await
     .wrap_err("error querying track preview URL")?;
-    music::clip(config, track_id.0, &preview_url, time)
+    music::clip(track_id.0, &preview_url, time)
         .await
         .wrap_err("error clipping music")
 }

@@ -1,15 +1,29 @@
 //! A cache system for storing preview MP3s from Deezer, and retrieving clips from them.
-use std::ops::Range;
+use std::{ops::Range, sync::OnceLock};
 
 use eyre::OptionExt;
 use rocket::tokio::{fs, task};
 
 use crate::{deezer::CLIENT, Error, ResultExt};
 
+/// The config for the music cache system, set on startup.
+static CONFIG: OnceLock<Config> = OnceLock::new();
+
 /// Config options for the music cache system.
-pub struct Config {
+#[derive(Debug)]
+struct Config {
     /// The directory where music files are stored.
     pub music_dir: std::path::PathBuf,
+}
+
+/// Initialise the music cache system using the given config.
+///
+/// Must only be called once.
+pub fn init(config: &crate::Config) {
+    CONFIG
+        .set(config.into())
+        .map_err(|_| ())
+        .expect("track::music::init must only be called once");
 }
 
 impl From<&crate::Config> for Config {
@@ -69,11 +83,10 @@ async fn download_track(config: &Config, track_id: u32, preview: &str) -> Result
 }
 
 /// Ensure that a given track is cached, and return the path.
-async fn ensure_cached(
-    config: &Config,
-    track_id: u32,
-    preview: &str,
-) -> Result<std::path::PathBuf, Error> {
+async fn ensure_cached(track_id: u32, preview: &str) -> Result<std::path::PathBuf, Error> {
+    let config = CONFIG
+        .get()
+        .expect("music system used before initialisation");
     let path = config.music_dir.join(format!("{}.mp3", track_id));
     if !fs::try_exists(&path)
         .await
@@ -124,11 +137,10 @@ fn blocking_clip_track(
 /// Get a clip from a track.
 /// The clip is returned as a vector of bytes in WAV format.
 pub async fn clip(
-    config: &Config,
     track_id: u32,
     preview: &str,
     time: Range<chrono::Duration>,
 ) -> Result<Vec<u8>, Error> {
-    let path = ensure_cached(config, track_id, preview).await?;
+    let path = ensure_cached(track_id, preview).await?;
     task::spawn_blocking(move || blocking_clip_track(path, time)).await?
 }

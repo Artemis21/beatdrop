@@ -18,10 +18,9 @@
     missing_docs,
     clippy::missing_docs_in_private_items
 )]
-#![allow(clippy::no_effect_underscore_binding)]
+#![allow(clippy::no_effect_underscore_binding)] // triggered by Rocket macro
 use std::{future::Future, sync::Arc};
 
-// triggered by Rocket macro
 use clokwerk::{AsyncScheduler, Job, TimeUnits};
 use rocket::fairing::AdHoc;
 use rocket_db_pools::Database;
@@ -38,10 +37,10 @@ mod track;
 mod user;
 mod web;
 
-use database::{Db, DbConn};
+use database::DbConn;
 use errors::{Error, ResultExt};
 use game::Game;
-use user::{AuthConfig, User};
+use user::{AuthHeader, User};
 
 /// Read config, set up the database and build the Rocket instance.
 #[rocket::launch]
@@ -57,11 +56,11 @@ fn rocket() -> _ {
         .try_deserialize()
         .unwrap();
     let figment = rocket::Config::figment().merge(("databases.main.url", &config.db_url));
+    track::init(&config);
+    user::init(&config);
     rocket::custom(figment)
         .attach(database::Main::init())
         .attach(AdHoc::try_on_ignite("migrations", database::run_migrations))
-        .manage(AuthConfig::from(&config))
-        .manage(track::Config::from(&config))
         .mount("/api", api::routes())
         .mount("/", web::routes(config.dev))
 }
@@ -132,7 +131,7 @@ async fn ensure_daily_chosen(db: &database::Main) -> Result<(), Error> {
 */
 /// Deserialisation struct for the configuration file.
 #[derive(serde::Deserialize)]
-struct Config {
+pub struct Config {
     /// Database connection string (must be `postgres://`).
     db_url: String,
     /// Directory to store cached media files in.

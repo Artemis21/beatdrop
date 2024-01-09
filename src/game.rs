@@ -1,16 +1,8 @@
 use chrono::{DateTime, Utc};
 use eyre::Context;
-use rocket::{
-    http,
-    outcome::try_outcome,
-    request::{self, FromRequest},
-};
 use serde::Serialize;
 
-use crate::{
-    database::{self, Db},
-    deezer, track, DbConn, Error, User,
-};
+use crate::{deezer, track, DbConn, Error, User};
 
 const fn seconds(n: i64) -> chrono::Duration {
     chrono::Duration::milliseconds(n * 1000)
@@ -105,7 +97,7 @@ pub struct Row {
     started_at: DateTime<Utc>,
     is_daily: bool,
     is_timed: bool,
-    genre_id: database::DeezerOptionId,
+    genre_id: deezer::OptionId,
     won: Option<bool>,
     pub track_id: deezer::Id,
 }
@@ -113,7 +105,7 @@ pub struct Row {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct Guess {
-    track_id: database::DeezerOptionId,
+    track_id: deezer::OptionId,
     guessed_at: DateTime<Utc>,
 }
 
@@ -328,6 +320,12 @@ impl User {
         }
     }
 
+    pub async fn expect_current_game(&self, db: &mut DbConn) -> Result<Game, Error> {
+        self.current_game(db)
+            .await?
+            .ok_or_else(|| Error::NotFound("no active game"))
+    }
+
     pub async fn daily_game(&self, db: &mut DbConn) -> Result<Option<Game>, Error> {
         let game = sqlx::query_as!(
             Row,
@@ -362,47 +360,5 @@ impl User {
         .await
         .map_err(Error::from)
         .map(|r| r.is_some())
-    }
-}
-
-#[rocket::async_trait]
-impl<'r> FromRequest<'r> for Game {
-    type Error = Error;
-
-    async fn from_request(req: &'r rocket::Request<'_>) -> request::Outcome<Self, Self::Error> {
-        let mut db = try_outcome!(req.guard::<Db>().await);
-        let user = try_outcome!(req.guard::<crate::User>().await);
-        match user.current_game(&mut db).await {
-            Ok(Some(game)) => request::Outcome::Success(game),
-            Ok(None) => {
-                request::Outcome::Error((http::Status::NotFound, Error::NotFound("no active game")))
-            }
-            Err(err) => request::Outcome::Error((http::Status::InternalServerError, err)),
-        }
-    }
-}
-
-pub struct Maybe(Option<Game>);
-
-impl Maybe {
-    pub async fn into_response(self, db: &mut DbConn) -> Result<Option<Response>, Error> {
-        match self.0 {
-            Some(game) => Ok(Some(game.into_response(db).await?)),
-            None => Ok(None),
-        }
-    }
-}
-
-#[rocket::async_trait]
-impl<'r> FromRequest<'r> for Maybe {
-    type Error = Error;
-
-    async fn from_request(req: &'r rocket::Request<'_>) -> request::Outcome<Self, Self::Error> {
-        let mut db = try_outcome!(req.guard::<Db>().await);
-        let user = try_outcome!(req.guard::<crate::User>().await);
-        match user.current_game(&mut db).await {
-            Ok(game) => request::Outcome::Success(Self(game)),
-            Err(err) => request::Outcome::Error((http::Status::InternalServerError, err)),
-        }
     }
 }

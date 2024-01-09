@@ -185,3 +185,22 @@ impl<T> std::ops::Deref for DataWrap<T> {
         &self.data
     }
 }
+
+/// A wrapper around `Option<deezer::Id>`, used for deserialising database rows with sqlx.
+#[derive(serde::Serialize, serde::Deserialize, PartialEq, Eq, Clone, Copy)]
+#[serde(transparent)]
+pub struct OptionId(Option<Id>);
+
+impl From<Option<i32>> for OptionId {
+    fn from(id: Option<i32>) -> Self {
+        id.map_or(Self(None), |id| Self(Some(id.into())))
+    }
+}
+
+impl std::ops::Deref for OptionId {
+    type Target = Option<Id>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}

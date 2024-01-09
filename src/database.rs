@@ -11,71 +11,39 @@ use crate::{deezer, Error, ResultExt};
 #[database("main")]
 pub struct Main(sqlx::PgPool);
 
+/// A request guard for getting a database connection.
+///
+/// Routes which need to make a single database query, or don't care about
+/// consistency, should take a `Connection` argument.
+pub type Connection = rocket_db_pools::Connection<Main>;
+
 /// A request guard for getting a database transaction.
-pub struct Transaction<'c> {
-    tx: sqlx::Transaction<'c, sqlx::Postgres>,
-    #[cfg(debug_assertions)]
-    ended: TxEnded,
-}
-
-/// A `Drop` type used to warn when a transaction is dropped without being committed
-/// or rolled back.
-#[cfg(debug_assertions)]
-struct TxEnded {
-    ended: bool,
-    context: String,
-}
-
-#[cfg(debug_assertions)]
-impl TxEnded {
-    fn new(ctx: impl ToString) -> Self {
-        Self {
-            ended: false,
-            context: ctx.to_string(),
-        }
-    }
-
-    fn end(&mut self) {
-        self.ended = true;
-    }
-}
-
-#[cfg(debug_assertions)]
-impl std::ops::Drop for TxEnded {
-    fn drop(&mut self) {
-        if !self.ended {
-            eprintln!(
-                "A transaction for {} was dropped without committing or rolling back!",
-                self.context
-            );
-        }
-    }
-}
+///
+/// Routes which need to make multiple database queries and need to ensure
+/// consistency should take a `Transaction` argument.
+pub struct Transaction<'c>(sqlx::Transaction<'c, sqlx::Postgres>);
 
 impl<'c> std::ops::Deref for Transaction<'c> {
     type Target = sqlx::Transaction<'c, sqlx::Postgres>;
 
     fn deref(&self) -> &Self::Target {
-        &self.tx
+        &self.0
     }
 }
 
 impl<'c> std::ops::DerefMut for Transaction<'c> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.tx
+        &mut self.0
     }
 }
 
 impl Transaction<'_> {
-    pub async fn commit(mut self) -> Result<(), Error> {
-        self.tx
+    /// Commit the transaction.
+    pub async fn commit(self) -> Result<(), Error> {
+        self.0
             .commit()
             .await
             .wrap_err("error committing transaction for request")?;
-        #[cfg(debug_assertions)]
-        {
-            self.ended.end();
-        }
         Ok(())
     }
 }
@@ -89,11 +57,7 @@ impl<'r> FromRequest<'r> for Transaction<'r> {
             .expect("application is running, so database must be initialised");
         let tx = db.begin().await;
         match tx {
-            Ok(tx) => request::Outcome::Success(Self {
-                tx,
-                #[cfg(debug_assertions)]
-                ended: TxEnded::new(req),
-            }),
+            Ok(tx) => request::Outcome::Success(Self(tx)),
             Err(e) => {
                 return request::Outcome::Error((
                     rocket::http::Status::InternalServerError,
@@ -104,12 +68,10 @@ impl<'r> FromRequest<'r> for Transaction<'r> {
     }
 }
 
-/// A request guard for getting a database connection.
-pub type Db<'c> = Transaction<'c>; // Connection<Main>;
-
 /// The database connection type.
 ///
-/// Methods which need access to the database should take a `&mut DbConn` argument.
+/// Methods (other than routes) which need access to the database should take a
+/// `&mut DbConn` argument.
 pub type DbConn = sqlx::PgConnection;
 
 /// Run database migrations as a Rocket fairing.
@@ -139,27 +101,5 @@ impl From<deezer::Id> for i32 {
 impl std::fmt::Display for deezer::Id {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
-    }
-}
-
-/// A wrapper around `Option<deezer::Id>`, used for deserialising database rows with sqlx.
-#[derive(serde::Serialize, serde::Deserialize, PartialEq, Eq, Clone, Copy)]
-#[serde(transparent)]
-pub struct DeezerOptionId(Option<deezer::Id>);
-
-impl From<Option<i32>> for DeezerOptionId {
-    fn from(id: Option<i32>) -> Self {
-        match id {
-            Some(id) => Self(Some(id.into())),
-            None => Self(None),
-        }
-    }
-}
-
-impl std::ops::Deref for DeezerOptionId {
-    type Target = Option<deezer::Id>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }
