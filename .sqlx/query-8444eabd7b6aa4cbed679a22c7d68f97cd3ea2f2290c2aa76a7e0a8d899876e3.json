@@ -1,0 +1,12 @@
+{
+    "db_name": "PostgreSQL",
+    "query": "INSERT INTO daily_track (track_id) VALUES ($1)",
+    "describe": {
+        "columns": [],
+        "parameters": {
+            "Left": ["Int4"]
+        },
+        "nullable": []
+    },
+    "hash": "8444eabd7b6aa4cbed679a22c7d68f97cd3ea2f2290c2aa76a7e0a8d899876e3"
+}

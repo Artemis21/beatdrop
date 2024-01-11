@@ -1,0 +1,33 @@
+{
+    "db_name": "PostgreSQL",
+    "query": "INSERT INTO account (secret_hash) VALUES ($1) RETURNING *",
+    "describe": {
+        "columns": [
+            {
+                "ordinal": 0,
+                "name": "id",
+                "type_info": "Int4"
+            },
+            {
+                "ordinal": 1,
+                "name": "display_name",
+                "type_info": "Varchar"
+            },
+            {
+                "ordinal": 2,
+                "name": "secret_hash",
+                "type_info": "Bytea"
+            },
+            {
+                "ordinal": 3,
+                "name": "created_at",
+                "type_info": "Timestamptz"
+            }
+        ],
+        "parameters": {
+            "Left": ["Bytea"]
+        },
+        "nullable": [false, true, false, false]
+    },
+    "hash": "bf7d74b49562e3549047e557f61e7260b0880ee348a73b48c5ec775f795b5c02"
+}

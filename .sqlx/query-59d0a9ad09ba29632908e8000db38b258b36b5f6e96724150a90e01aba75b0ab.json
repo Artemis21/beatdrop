@@ -1,0 +1,12 @@
+{
+    "db_name": "PostgreSQL",
+    "query": "INSERT INTO album (id, title, deezer_url, cover_art_url) VALUES ($1, $2, $3, $4)\n        ON CONFLICT (id) DO UPDATE SET\n            title = EXCLUDED.title,\n            deezer_url = EXCLUDED.deezer_url,\n            cover_art_url = EXCLUDED.cover_art_url",
+    "describe": {
+        "columns": [],
+        "parameters": {
+            "Left": ["Int4", "Varchar", "Varchar", "Varchar"]
+        },
+        "nullable": []
+    },
+    "hash": "59d0a9ad09ba29632908e8000db38b258b36b5f6e96724150a90e01aba75b0ab"
+}

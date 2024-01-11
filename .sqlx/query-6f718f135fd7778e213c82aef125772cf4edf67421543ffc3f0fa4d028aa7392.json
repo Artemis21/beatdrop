@@ -1,0 +1,43 @@
+{
+    "db_name": "PostgreSQL",
+    "query": "SELECT\n                track.id,\n                track.title,\n                track.deezer_url AS link,\n                artist.title AS artist_name,\n                album.title AS album_title,\n                album.cover_art_url AS album_cover\n            FROM track\n            INNER JOIN artist ON track.artist_id = artist.id\n            INNER JOIN album ON track.album_id = album.id\n            WHERE track.id = $1",
+    "describe": {
+        "columns": [
+            {
+                "ordinal": 0,
+                "name": "id",
+                "type_info": "Int4"
+            },
+            {
+                "ordinal": 1,
+                "name": "title",
+                "type_info": "Varchar"
+            },
+            {
+                "ordinal": 2,
+                "name": "link",
+                "type_info": "Varchar"
+            },
+            {
+                "ordinal": 3,
+                "name": "artist_name",
+                "type_info": "Varchar"
+            },
+            {
+                "ordinal": 4,
+                "name": "album_title",
+                "type_info": "Varchar"
+            },
+            {
+                "ordinal": 5,
+                "name": "album_cover",
+                "type_info": "Varchar"
+            }
+        ],
+        "parameters": {
+            "Left": ["Int4"]
+        },
+        "nullable": [false, false, false, false, false, false]
+    },
+    "hash": "6f718f135fd7778e213c82aef125772cf4edf67421543ffc3f0fa4d028aa7392"
+}

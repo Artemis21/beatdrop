@@ -1,0 +1,23 @@
+{
+    "db_name": "PostgreSQL",
+    "query": "INSERT INTO game_guess (game_id, track_id, guess_number)\n            VALUES ($1, $2, $3)\n            RETURNING track_id, guessed_at",
+    "describe": {
+        "columns": [
+            {
+                "ordinal": 0,
+                "name": "track_id",
+                "type_info": "Int4"
+            },
+            {
+                "ordinal": 1,
+                "name": "guessed_at",
+                "type_info": "Timestamptz"
+            }
+        ],
+        "parameters": {
+            "Left": ["Int4", "Int4", "Int4"]
+        },
+        "nullable": [true, false]
+    },
+    "hash": "f57fc58cc8eabab6944597a9973e18f8cfd6cc168839f8582f915bb08048388d"
+}

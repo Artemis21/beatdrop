@@ -7,13 +7,28 @@
             "publicUrl": "/static"
         }
     },
+    "scripts": {
+        "fmt": "npm-run-all -c 'fmt:*'",
+        "fmt:eslint": "eslint web/**/*.{js,jsx,ts,tsx} --fix",
+        "fmt:prettier": "prettier --write . --log-level warn",
+        "check": "npm-run-all -c 'check:*'",
+        "check:tsc": "tsc --noEmit --strict",
+        "check:eslint": "eslint web/**/*.{js,jsx,ts,tsx}"
+    },
     "browserslist": "> 0.5%, last 2 versions, not dead",
     "devDependencies": {
-        "@parcel/core": "^2.10.3",
-        "@parcel/transformer-sass": "2.10.3",
-        "@types/react": "^18.2.46",
+        "@parcel/core": "^2.11.0",
+        "@parcel/transformer-sass": "2.11.0",
+        "@types/eslint": "^8.56.2",
+        "@types/react": "^18.2.47",
         "@types/react-dom": "^18.2.18",
-        "parcel": "^2.10.3",
+        "@typescript-eslint/eslint-plugin": "^6.18.1",
+        "@typescript-eslint/parser": "^6.18.1",
+        "eslint": "^8.56.0",
+        "eslint-plugin-react": "^7.33.2",
+        "eslint-plugin-react-hooks": "^4.6.0",
+        "npm-run-all": "^4.1.5",
+        "parcel": "^2.11.0",
         "prettier": "^3.1.1",
         "process": "^0.11.10",
         "typescript": "^5.3.3"
@@ -24,8 +39,49 @@
         "@fortawesome/react-fontawesome": "^0.2.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "react-router-dom": "^6.21.0",
+        "react-router-dom": "^6.21.2",
         "swr": "^2.2.4"
     },
-    "packageManager": "yarn@4.0.2"
+    "packageManager": "yarn@4.0.2",
+    "prettier": {
+        "experimentalTernaries": true,
+        "printWidth": 90,
+        "tabWidth": 4,
+        "quoteProps": "consistent",
+        "arrowParens": "avoid",
+        "proseWrap": "always"
+    },
+    "eslintConfig": {
+        "env": {
+            "browser": true,
+            "es2024": true
+        },
+        "settings": {
+            "react": {
+                "version": "detect"
+            }
+        },
+        "extends": [
+            "eslint:recommended",
+            "plugin:react/recommended",
+            "plugin:react-hooks/recommended",
+            "plugin:@typescript-eslint/recommended"
+        ],
+        "parser": "@typescript-eslint/parser",
+        "parserOptions": {
+            "ecmaVersion": "latest",
+            "sourceType": "module",
+            "ecmaFeatures": {
+                "jsx": true
+            }
+        },
+        "plugins": [
+            "react",
+            "react-hooks",
+            "@typescript-eslint"
+        ],
+        "rules": {
+            "react/react-in-jsx-scope": "off"
+        }
+    }
 }

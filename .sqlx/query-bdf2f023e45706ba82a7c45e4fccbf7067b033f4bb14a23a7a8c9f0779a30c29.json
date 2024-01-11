@@ -1,0 +1,18 @@
+{
+    "db_name": "PostgreSQL",
+    "query": "SELECT track_id FROM daily_track\n        WHERE for_day = TIMEZONE('utc', NOW())::DATE",
+    "describe": {
+        "columns": [
+            {
+                "ordinal": 0,
+                "name": "track_id",
+                "type_info": "Int4"
+            }
+        ],
+        "parameters": {
+            "Left": []
+        },
+        "nullable": [false]
+    },
+    "hash": "bdf2f023e45706ba82a7c45e4fccbf7067b033f4bb14a23a7a8c9f0779a30c29"
+}

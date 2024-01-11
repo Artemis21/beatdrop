@@ -22,11 +22,6 @@ fn build_assets(dist: &std::path::Path) {
     if dist.try_exists().unwrap_or(false) {
         std::fs::remove_dir_all(dist).expect("failed to remove old dist");
     }
-    // Install parcel
-    std::process::Command::new("yarn")
-        .args(["install", "--immutable"])
-        .status()
-        .expect("failed to run `yarn install`");
     // Build web assets
     std::process::Command::new("yarn")
         .args([

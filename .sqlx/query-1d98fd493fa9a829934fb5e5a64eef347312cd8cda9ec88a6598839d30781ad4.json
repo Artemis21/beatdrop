@@ -1,0 +1,12 @@
+{
+    "db_name": "PostgreSQL",
+    "query": "INSERT INTO genre (id, title, picture_url) VALUES ($1, $2, $3)\n        ON CONFLICT (id) DO UPDATE SET\n            title = EXCLUDED.title,\n            picture_url = EXCLUDED.picture_url",
+    "describe": {
+        "columns": [],
+        "parameters": {
+            "Left": ["Int4", "Varchar", "Varchar"]
+        },
+        "nullable": []
+    },
+    "hash": "1d98fd493fa9a829934fb5e5a64eef347312cd8cda9ec88a6598839d30781ad4"
+}
