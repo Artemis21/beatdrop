@@ -114,21 +114,34 @@ fn blocking_clip_track(
     let mut buf = Vec::new();
     let cursor = std::io::Cursor::new(&mut buf);
     let mut writer = hound::WavWriter::new(cursor, spec).wrap_err("error creating a WAV writer")?;
-    for _ in 0..(spec.sample_rate * length / 1000) {
-        let left = reader
+    let samples_to_read = spec.sample_rate * length / 1000;
+    let mut samples_read = 0;
+    for _ in 0..samples_to_read {
+        let Some(left) = reader
             .samples::<i16>()
             .next()
-            .ok_or_eyre("could not read sample from track")??;
+            .transpose()
+            .wrap_err("could not read sample from track")? else { break };
         let right = reader
             .samples::<i16>()
             .next()
-            .ok_or_eyre("could not read sample from track")??;
+            .ok_or_eyre("expected a right sample after a left sample")?
+            .wrap_err("could not read sample from track")?;
         writer
             .write_sample(left)
             .wrap_err("error writing a (left) sample to a WAV file")?;
         writer
             .write_sample(right)
             .wrap_err("error writing a (right) sample to a WAV file")?;
+        samples_read += 1;
+    }
+    if samples_read + spec.sample_rate / 2 < samples_to_read {
+        // error if there weren't enough samples to read, giving half a second of leeway
+        Err(eyre::eyre!(
+            "could not read enough samples from track ({} < {})",
+            samples_read,
+            samples_to_read
+        ))?;
     }
     writer.finalize()?;
     Ok(buf)

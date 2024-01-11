@@ -15,6 +15,6 @@ export function useThrottled<T>(value: T, delay: number): T {
             }, unthrottleTime - now);
             return () => clearTimeout(timeout);
         }
-    }, [value, delay]);
+    }, [value, delay, unthrottleTime]);
     return throttled;
 }

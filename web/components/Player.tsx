@@ -11,7 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export function Player({ game }: { game: Game }) {
-    const { data: audio, error } = useSWR<HTMLAudioElement, any, GameClipKey>(
+    const { data: audio, error } = useSWR<HTMLAudioElement, object, GameClipKey>(
         ["/game/clip", game.guesses.length],
         fetchAudio,
     );
@@ -37,7 +37,7 @@ export function Player({ game }: { game: Game }) {
             audio.removeEventListener("timeupdate", handleTimeUpdate);
             audio.pause();
         };
-    }, [seek, paused, audio]);
+    }, [seek, paused, audio, error]);
     if (error) return <Error error={error} />;
     if (audio === undefined) return <Loading />;
     return (
@@ -59,7 +59,8 @@ function TrackBar({ currentTime, game }: { currentTime: number; game: Game }) {
     const segments = [];
     let columnWidths = "";
     let lastClipLength = 0;
-    const unlockedSegments = game.guesses.length + 1;
+    const unlockedSegments =
+        game.won === null ? game.guesses.length + 1 : game.constants.maxGuesses;
     for (let n = 0; n < game.constants.maxGuesses; n++) {
         const clipLength = game.constants.musicClipMillis[n];
         const segmentWidth = clipLength - lastClipLength;

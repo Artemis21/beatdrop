@@ -9,7 +9,7 @@ export function SongSearch() {
     const [id, setId] = useState<number | null>(null);
     const [active, setActive] = useState(false);
     const [tracks, setTracks] = useState<Track[] | undefined>(undefined);
-    const [error, setError] = useState<any | null>(null);
+    const [error, setError] = useState<object | null>(null);
     useEffect(() => {
         if (debouncedQ !== "") {
             let cancelled = false;

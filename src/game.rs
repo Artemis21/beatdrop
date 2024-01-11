@@ -56,7 +56,7 @@ impl<const N: usize> Serialize for GenericConstants<N> {
 }
 
 const MAX_GUESSES: usize = 7;
-const MUSIC_CLIP_LENGTHS: [chrono::Duration; 7] = [
+const MUSIC_CLIP_LENGTHS: [chrono::Duration; MAX_GUESSES] = [
     seconds(1),
     seconds(2),
     seconds(4),
@@ -65,7 +65,7 @@ const MUSIC_CLIP_LENGTHS: [chrono::Duration; 7] = [
     seconds(16),
     seconds(30),
 ];
-const TIMED_UNLOCK_TIMES: [chrono::Duration; 7] = [
+const TIMED_UNLOCK_TIMES: [chrono::Duration; MAX_GUESSES] = [
     // 1s clip + 5s
     seconds(6),
     // 2s clip + 5s
@@ -81,6 +81,7 @@ const TIMED_UNLOCK_TIMES: [chrono::Duration; 7] = [
     // 30s clip + 5s
     seconds(106),
 ];
+const FULL_CLIP_LENGTH: chrono::Duration = MUSIC_CLIP_LENGTHS[MAX_GUESSES - 1];
 const TIMED_GAME_LENGTH: chrono::Duration = TIMED_UNLOCK_TIMES[MAX_GUESSES - 1];
 
 pub type Constants = GenericConstants<MAX_GUESSES>;
@@ -218,6 +219,9 @@ impl Game {
     }
 
     pub fn time_unlocked(&self) -> chrono::Duration {
+        if self.is_over() {
+            return FULL_CLIP_LENGTH;
+        }
         let idx = if self.is_timed {
             let elapsed = Utc::now() - self.started_at;
             TIMED_UNLOCK_TIMES.iter().filter(|&&t| t < elapsed).count()

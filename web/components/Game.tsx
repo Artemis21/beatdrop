@@ -18,12 +18,7 @@ export function Game() {
     }
     let game;
     if (data.won === null) {
-        game = (
-            <>
-                <Guesses game={data} />
-                <Player game={data} />
-            </>
-        );
+        game = <Guesses game={data} />;
     } else {
         game = <GameOver game={data} />;
     }
@@ -31,6 +26,7 @@ export function Game() {
         <>
             <Nav />
             {game}
+            <Player game={data} />
         </>
     );
 }
