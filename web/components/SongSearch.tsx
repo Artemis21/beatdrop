@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { useSWRConfig } from "swr";
-import { Track, searchTracks, newGuess } from "../api";
+import { Track, searchTracks, useNewGuess } from "../api";
 import { useThrottled } from "../utils";
 
-export function SongSearch() {
+export function SongSearch({ gameId }: { gameId: number }) {
     const [q, setQ] = useState("");
     const debouncedQ = useThrottled(q, 500);
     const [id, setId] = useState<number | null>(null);
@@ -11,7 +10,7 @@ export function SongSearch() {
     const [tracks, setTracks] = useState<Track[] | undefined>(undefined);
     const [error, setError] = useState<object | null>(null);
     useEffect(() => {
-        if (debouncedQ !== "") {
+        if (id === null && debouncedQ !== "") {
             let cancelled = false;
             searchTracks(debouncedQ)
                 .then(data => cancelled || setTracks(data.tracks))
@@ -20,9 +19,9 @@ export function SongSearch() {
                 cancelled = true;
             };
         }
-    }, [debouncedQ]);
+    }, [debouncedQ, id]);
     let results;
-    if (!active || q === "") {
+    if (!active || q === "" || id !== null) {
         results = null;
     } else if (error) {
         results = <SearchResultsPlaceholder message={error.toString()} />;
@@ -35,9 +34,9 @@ export function SongSearch() {
     }
     let button;
     if (id === null) {
-        button = <SkipButton />;
+        button = <SkipButton gameId={gameId} />;
     } else {
-        button = <GuessButton guess={id} />;
+        button = <GuessButton gameId={gameId} guess={id} />;
     }
     return (
         <div className="stack__item__title">
@@ -100,11 +99,9 @@ function SearchResultsPlaceholder({ message }: { message: string }) {
     );
 }
 
-function SkipButton() {
-    const { mutate } = useSWRConfig();
-    const click = async () => {
-        await mutate("/game", newGuess(null), { revalidate: false });
-    };
+function SkipButton({ gameId }: { gameId: number }) {
+    const newGuess = useNewGuess();
+    const click = () => newGuess(gameId, null);
     return (
         <button className="guess_button guess_button--skip" onClick={click}>
             Skip
@@ -112,11 +109,9 @@ function SkipButton() {
     );
 }
 
-function GuessButton({ guess }: { guess: number }) {
-    const { mutate } = useSWRConfig();
-    const click = async () => {
-        await mutate("/game", newGuess(guess), { revalidate: false });
-    };
+function GuessButton({ gameId, guess }: { gameId: number; guess: number }) {
+    const newGuess = useNewGuess();
+    const click = () => newGuess(gameId, guess);
     return (
         <button className="guess_button guess_button--guess" onClick={click}>
             Guess

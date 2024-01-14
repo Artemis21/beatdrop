@@ -1,3 +1,5 @@
+import useSWR, { useSWRConfig } from "swr";
+
 const API_URL = "/api";
 
 /** Singleton class which handles storing credentials in local storage. */
@@ -93,15 +95,18 @@ async function endpoint(
 
 /** Create a new anonymous account, and store the login secret. */
 async function createAccount() {
-    const response = await endpoint("POST", "/account/me", { authn: false });
+    const response = await endpoint("POST", "/users/me", { authn: false });
     const { login } = await response.json();
     credentials.loginSecret = login;
 }
 
 /** Create a new session using a previously stored login secret. Store the session token. */
 export async function login() {
-    const response = await endpoint("POST", "/session/secret", {
-        body: { login: credentials.loginSecret },
+    const response = await endpoint("POST", "/sessions", {
+        body: {
+            method: "secret",
+            secret: credentials.loginSecret,
+        },
         authn: false,
     });
     const data = await response.json();
@@ -125,50 +130,89 @@ async function ensureLoggedIn() {
     await login();
 }
 
-export async function fetchAccount(key: "/account/me"): Promise<Account | null> {
-    return await (await endpoint("GET", key)).json();
+type Resource<T> = { data: T | undefined; error: object | undefined };
+
+export function useUser(): Resource<User> {
+    const fetch = async (path: "/users/me") => {
+        return await (await endpoint("GET", path)).json();
+    };
+    return useSWR("/users/me", fetch);
 }
 
-export async function fetchGame(key: "/game" | "/game/daily"): Promise<Game | null> {
-    return await (await endpoint("GET", key)).json();
+export function useGame(id: number): Resource<Game> {
+    type Key = ["/games/:id", number];
+    const fetch = async (key: Key) => {
+        return await (await endpoint("GET", `/games/${key[1]}`)).json();
+    };
+    return useSWR<Game, object, Key>(["/games/:id", id], fetch);
 }
 
-export type GameClipKey = ["/game/clip", number];
+export function useRecentGames(): Resource<RecentGames> {
+    const fetch = async (path: "/games") => {
+        return await (await endpoint("GET", path)).json();
+    };
+    return useSWR("/games", fetch);
+}
 
-export async function fetchAudio(key: GameClipKey): Promise<HTMLAudioElement> {
-    const blob = await (await endpoint("GET", key[0])).blob();
-    const url = URL.createObjectURL(blob);
-    return new Audio(url);
+export function useAudio(gameId: number, guesses: number): Resource<HTMLAudioElement> {
+    type Key = ["/games/:id/clip", number, number];
+    const fetch = async (key: Key) => {
+        const blob = await (await endpoint("GET", `/games/${key[1]}/clip`)).blob();
+        const url = URL.createObjectURL(blob);
+        return new Audio(url);
+    };
+    return useSWR<HTMLAudioElement, object, Key>(
+        ["/games/:id/clip", gameId, guesses],
+        fetch,
+    );
 }
 
 export async function searchTracks(q: string): Promise<TrackSearchResults> {
     const query = new URLSearchParams({ q });
-    const path = `/track/search?${query.toString()}`;
+    const path = `/tracks?${query.toString()}`;
     return await (await endpoint("GET", path)).json();
 }
 
-/** Update the current account's display name.
+type UpdateUser = {
+    displayName?: string | null;
+};
+
+/** Update the current user's display name.
  *
  * @param displayName The new display name, or null to not change it.
- * @returns The updated account.
+ * @returns The updated user account.
  */
-export async function updateAccount({
-    displayName = null,
-}: {
-    displayName?: string | null;
-}): Promise<Account> {
-    const response = await endpoint("PATCH", "/account/me", {
+async function updateUser({ displayName = null }: UpdateUser): Promise<User> {
+    const response = await endpoint("PATCH", "/users/me", {
         body: { display_name: displayName },
     });
     return await response.json();
 }
 
-/** Delete the current account. */
-export async function deleteAccount() {
-    await endpoint("DELETE", "/account/me");
+export function useUpdateUser() {
+    const { mutate } = useSWRConfig();
+    return async (update: UpdateUser) => {
+        return await mutate("/users/me", updateUser(update), { revalidate: false });
+    };
+}
+
+/** Delete the current user's account. */
+async function deleteUser() {
+    await endpoint("DELETE", "/users/me");
     credentials.sessionToken = null;
     credentials.loginSecret = null;
 }
+
+export function useDeleteUser() {
+    const { mutate } = useSWRConfig();
+    return async () => await mutate("/users/me", deleteUser(), { populateCache: false });
+}
+
+type NewGame = {
+    genreId?: number | null;
+    daily?: boolean;
+    timed?: boolean;
+};
 
 /** Create a new game (requires login).
  *
@@ -180,42 +224,62 @@ export async function deleteAccount() {
  * If daily is set, genreId and timed must not be. Will also error if the user
  * has already played the daily game today, or if they already have a game active.
  */
-export async function newGame({
+async function newGame({
     genreId = null,
     daily = false,
     timed = false,
-}: {
-    genreId?: number | null;
-    daily?: boolean;
-    timed?: boolean;
-} = {}): Promise<Game> {
-    const response = await endpoint("POST", "/game", {
+}: NewGame = {}): Promise<Game> {
+    const response = await endpoint("POST", "/games", {
         body: { genre_id: genreId, daily, timed },
     });
     return await response.json();
 }
 
+export function useNewGame() {
+    const { mutate } = useSWRConfig();
+    return async (options: NewGame) => {
+        return await mutate("/games", newGame(options), { populateCache: false });
+    };
+}
+
 /** Guess a track.
  *
+ * @param gameId The ID of the game to submit a guess for.
  * @param trackId The ID of the track to guess, or null to skip a guess.
  * @returns The updated game.
  */
-export async function newGuess(trackId: number | null): Promise<Game> {
-    const response = await endpoint("POST", "/game/guess", {
+async function newGuess(gameId: number, trackId: number | null): Promise<Game> {
+    const response = await endpoint("POST", `/games/${gameId}/guesses`, {
         body: { track_id: trackId },
     });
     return await response.json();
 }
 
-/** The current account, as returned by the API. */
-export type Account = {
+export function useNewGuess() {
+    const { mutate } = useSWRConfig();
+    return async (gameId: number, trackId: number | null) => {
+        return await mutate(["/games/:id", gameId], newGuess(gameId, trackId), {
+            revalidate: false,
+        });
+    };
+}
+
+/** The current user account, as returned by the API. */
+export type User = {
     id: number;
     displayName: string;
     createdAt: string;
 };
 
+/** The recent game IDs for the current user. */
+export type RecentGames = {
+    daily: number | null;
+    ongoing: number | null;
+};
+
 /** The current game, as returned by the API. */
 export type Game = {
+    id: number;
     startedAt: Date;
     isDaily: boolean;
     isTimed: boolean;

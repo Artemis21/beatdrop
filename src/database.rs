@@ -4,10 +4,11 @@
 use rocket::request::{self, FromRequest, Request};
 use rocket_db_pools::{sqlx, Database};
 
-use crate::{deezer, Error, ResultExt};
+use crate::deezer;
+use eyre::{Context, Report, Result};
 
 /// The main (and only) database connection pool.
-#[derive(Database, Clone)]
+#[derive(Database, Clone, Debug)]
 #[database("main")]
 pub struct Main(sqlx::PgPool);
 
@@ -39,7 +40,7 @@ impl<'c> std::ops::DerefMut for Transaction<'c> {
 
 impl Transaction<'_> {
     /// Commit the transaction.
-    pub async fn commit(self) -> Result<(), Error> {
+    pub async fn commit(self) -> Result<()> {
         self.0
             .commit()
             .await
@@ -50,7 +51,7 @@ impl Transaction<'_> {
 
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for Transaction<'r> {
-    type Error = Error;
+    type Error = Report;
 
     async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
         let db = Main::fetch(req.rocket())

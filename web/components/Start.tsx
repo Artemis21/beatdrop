@@ -1,5 +1,4 @@
-import useSWR, { useSWRConfig } from "swr";
-import { fetchGame, newGame } from "../api";
+import { useNewGame, useRecentGames } from "../api";
 import { useNavigate, Link } from "react-router-dom";
 import { Error, Loading } from "./Placeholder";
 import { Nav } from "./Nav";
@@ -12,19 +11,20 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export function Start() {
-    const { data, error } = useSWR("/game", fetchGame);
-    const { data: daily, error: dailyError } = useSWR("/game/daily", fetchGame);
-    if (error || dailyError) return <Error error={error || dailyError} />;
-    if (data === undefined || daily === undefined) return <Loading />;
+    const { data, error } = useRecentGames();
+    if (error) return <Error error={error} />;
+    if (data === undefined) return <Loading />;
     const buttons = [];
-    if (data !== null && data.won === null) {
-        buttons.push(<ResumeButton key="resume" />);
-        if (daily !== null && daily.won !== null) {
-            // Show daily results, since this isn't starting a new game.
-            buttons.push(<DailyButton key="daily" />);
+    if (data.ongoing !== null) {
+        buttons.push(<ResumeButton key="resume" id={data.ongoing} />);
+        if (data.daily !== null && data.daily !== data.ongoing) {
+            // we can't show any "start game" buttons with an ongoing game, but
+            // we can show a button to view daily results if the daily game was
+            // already completed
+            buttons.push(<DailyButton key="daily" id={data.daily} />);
         }
     } else {
-        buttons.push(<DailyButton key="daily" />);
+        buttons.push(<DailyButton key="daily" id={data.daily} />);
         buttons.push(<UnlimitedButton key="unlimited" />);
         buttons.push(<TimedButton key="timed" />);
     }
@@ -36,9 +36,9 @@ export function Start() {
     );
 }
 
-function ResumeButton() {
+function ResumeButton({ id }: { id: number }) {
     return (
-        <Link to="/game" className="stack__item stack__item--button">
+        <Link to={`/games/${id}`} className="stack__item stack__item--button">
             <FontAwesomeIcon className="stack__item__thumb" icon={faPlay} fixedWidth />
             <span className="stack__item__title">Resume</span>
             <span className="stack__item__sub">You have an ongoing game</span>
@@ -46,23 +46,15 @@ function ResumeButton() {
     );
 }
 
-function DailyButton() {
-    const { data, error } = useSWR("/game/daily", fetchGame);
+function DailyButton({ id }: { id: number | null }) {
     const navigate = useNavigate();
-    const { mutate } = useSWRConfig();
-    if (error) return <Error error={error} />;
-    if (data === undefined) return <Loading />;
-    // If there is a daily game ongoing, return null since we already have a resume button.
-    if (data !== null && data.won === null) return null;
+    const newGame = useNewGame();
     const click = async () => {
-        if (data === null) {
-            // `/game` and `/game/daily` refer to the same thing here, so update both caches
-            const game = await mutate("/game", newGame({ daily: true }), {
-                revalidate: false,
-            });
-            await mutate("/game/daily", game, { revalidate: false });
+        if (id === null) {
+            const game = await newGame({ daily: true });
+            id = game!.id;
         }
-        navigate("/game");
+        navigate(`/games/${id}`);
     };
     return (
         <button onClick={click} className="stack__item stack__item--button">
@@ -73,7 +65,7 @@ function DailyButton() {
             />
             <span className="stack__item__title">Daily</span>
             <span className="stack__item__sub">
-                {data === null ? "Play today's daily game" : "See your results for today"}
+                {id === null ? "Play today's daily game" : "See your results for today"}
             </span>
         </button>
     );

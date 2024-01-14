@@ -1,5 +1,4 @@
-import useSWR from "swr";
-import { fetchAudio, Game, GameClipKey } from "../api";
+import { useAudio, Game } from "../api";
 import { Error, Loading } from "./Placeholder";
 import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -11,10 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export function Player({ game }: { game: Game }) {
-    const { data: audio, error } = useSWR<HTMLAudioElement, object, GameClipKey>(
-        ["/game/clip", game.guesses.length],
-        fetchAudio,
-    );
+    const { data: audio, error } = useAudio(game.id, game.guesses.length);
     const [seek, setSeek] = useState(0);
     const [paused, setPaused] = useState(true);
     const [currentTime, setCurrentTime] = useState(0);
@@ -110,10 +106,8 @@ function Controls({
     setPaused: (_: boolean) => void;
     game: Game;
 }) {
-    const seekPoints = [
-        0,
-        ...game.constants.musicClipMillis.slice(0, game.guesses.length + 1),
-    ];
+    const unlocked = game.won === null ? game.guesses.length : game.constants.maxGuesses;
+    const seekPoints = [0, ...game.constants.musicClipMillis.slice(0, unlocked + 1)];
     return (
         <div className="controls">
             <BackButton

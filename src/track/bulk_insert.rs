@@ -2,7 +2,8 @@
 use super::insert;
 use std::collections::HashSet;
 
-use crate::{deezer, DbConn, Error, ResultExt};
+use crate::{deezer, DbConn};
+use eyre::{Context, Result};
 
 /// A helper for efficiently inserting multiple tracks into the database.
 pub struct BulkInserter<'a> {
@@ -31,7 +32,7 @@ impl<'a> BulkInserter<'a> {
     }
 
     /// Insert a track into the database, or update it if it already exists.
-    pub async fn insert_track(&mut self, track: &deezer::Track) -> Result<(), Error> {
+    pub async fn insert_track(&mut self, track: &deezer::Track) -> Result<()> {
         if self.inserted_track_ids.contains(&track.id) {
             return Ok(());
         }
@@ -49,7 +50,7 @@ impl<'a> BulkInserter<'a> {
     ///
     /// If the album is already in the database, nothing will be done. This is
     /// to minimise calls to the Deezer API.
-    async fn insert_album(&mut self, album: &deezer::PartialAlbum) -> Result<(), Error> {
+    async fn insert_album(&mut self, album: &deezer::PartialAlbum) -> Result<()> {
         if self.album_exists(album.id).await? {
             return Ok(());
         }
@@ -64,7 +65,7 @@ impl<'a> BulkInserter<'a> {
     }
 
     /// Check if an album exists in the database.
-    async fn album_exists(&mut self, album_id: deezer::Id) -> Result<bool, Error> {
+    async fn album_exists(&mut self, album_id: deezer::Id) -> Result<bool> {
         if self.inserted_album_ids.contains(&album_id) {
             return Ok(true);
         }
@@ -76,7 +77,7 @@ impl<'a> BulkInserter<'a> {
     }
 
     /// Insert a genre object into the database, or update it if it already exists.
-    async fn insert_genre(&mut self, genre: &deezer::Genre) -> Result<(), Error> {
+    async fn insert_genre(&mut self, genre: &deezer::Genre) -> Result<()> {
         if self.inserted_genre_ids.contains(&genre.id) {
             return Ok(());
         }
@@ -86,7 +87,7 @@ impl<'a> BulkInserter<'a> {
     }
 
     /// Insert an artist object into the database, or update it if it already exists.
-    async fn insert_artist(&mut self, artist: &deezer::Artist) -> Result<(), Error> {
+    async fn insert_artist(&mut self, artist: &deezer::Artist) -> Result<()> {
         if self.inserted_artist_ids.contains(&artist.id) {
             return Ok(());
         }

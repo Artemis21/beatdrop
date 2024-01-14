@@ -36,10 +36,10 @@ export function EmptyGuess() {
     );
 }
 
-export function NewGuess() {
+export function NewGuess({ gameId }: { gameId: number }) {
     return (
         <div className="stack__item stack__item--active">
-            <SongSearch />
+            <SongSearch gameId={gameId} />
             <div className="stack__item__sub stack__item__sub--hint">
                 Start typing above for suggestions
             </div>

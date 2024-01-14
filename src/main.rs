@@ -16,23 +16,19 @@
 use rocket::fairing::AdHoc;
 use rocket_db_pools::Database;
 
-// TODO: Document or refactor user & game modules.
-mod api;
+mod api_error;
 mod database;
 mod deezer;
-mod errors;
-#[allow(clippy::missing_docs_in_private_items)]
 mod game;
 mod tasks;
 mod track;
-#[allow(clippy::missing_docs_in_private_items)]
 mod user;
 mod web;
 
-use database::DbConn;
-use errors::{Error, ResultExt};
+use api_error::ApiError;
+use database::{Connection, DbConn, Transaction};
 use game::Game;
-use user::{AuthHeader, User};
+use user::{Session, User};
 
 /// Read config, set up the database and build the Rocket instance.
 #[rocket::launch]
@@ -54,8 +50,16 @@ fn rocket() -> _ {
         .attach(database::Main::init())
         .attach(AdHoc::try_on_ignite("migrations", database::run_migrations))
         .attach(AdHoc::try_on_ignite("background tasks", tasks::spawn))
-        .mount("/api", api::routes())
+        .mount("/api", api_routes())
         .mount("/", web::routes(config.dev))
+}
+
+/// Collect all the API routes.
+fn api_routes() -> Vec<rocket::Route> {
+    let mut routes = game::routes();
+    routes.extend(user::routes());
+    routes.extend(track::routes());
+    routes
 }
 
 /// Deserialisation struct for the configuration file.

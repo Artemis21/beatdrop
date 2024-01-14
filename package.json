@@ -10,7 +10,7 @@
     "scripts": {
         "fmt": "npm-run-all -c 'fmt:*'",
         "fmt:eslint": "eslint web/**/*.{js,jsx,ts,tsx} --fix",
-        "fmt:prettier": "prettier --write . --log-level warn",
+        "fmt:prettier": "prettier --write web --log-level warn",
         "check": "npm-run-all -c 'check:*'",
         "check:tsc": "tsc --noEmit --strict",
         "check:eslint": "eslint web/**/*.{js,jsx,ts,tsx}"

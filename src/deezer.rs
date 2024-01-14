@@ -1,20 +1,22 @@
 //! A minimal wrapper for the parts of the Deezer API we care about.
 //! API documentation: <https://developers.deezer.com/api>
-use crate::{Error, ResultExt};
+use eyre::{Context, Result};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
+// We don't actually use Rocket here, but Reqwest also uses this `Bytes` type and doesn't re-export it.
+use rocket::http::hyper::body::Bytes;
 
 /// Base URL for the API.
 const API_URL: &str = "https://api.deezer.com";
 
 lazy_static! {
     /// A shared HTTP client for making requests to the API.
-    pub static ref CLIENT: reqwest::Client = reqwest::Client::new();
+    static ref CLIENT: reqwest::Client = reqwest::Client::new();
 }
 
 /// Fetch the "chart" (a list of popular tracks) for a given genre.
 /// The genre with ID 0 is "all genres".
-pub async fn chart(genre_id: Id) -> Result<Vec<Track>, Error> {
+pub async fn chart(genre_id: Id) -> Result<Vec<Track>> {
     let url = format!("{API_URL}/chart/{id}/tracks", id = genre_id);
     let data: DataWrap<_> = CLIENT
         .get(&url)
@@ -30,7 +32,7 @@ pub async fn chart(genre_id: Id) -> Result<Vec<Track>, Error> {
 /// Get a list of common genres.
 /// There does not seem to be a way to get a list of all genres, short of enumerating
 /// all possible genre IDs.
-pub async fn genres() -> Result<Vec<Genre>, Error> {
+pub async fn genres() -> Result<Vec<Genre>> {
     let url = format!("{API_URL}/genre", API_URL = API_URL);
     let data: DataWrap<_> = CLIENT
         .get(&url)
@@ -49,7 +51,7 @@ pub async fn genres() -> Result<Vec<Genre>, Error> {
 ///
 /// Returns an error if the album does not exist, or if the API request fails
 /// for another reason.
-pub async fn album(album_id: Id) -> Result<Album, Error> {
+pub async fn album(album_id: Id) -> Result<Album> {
     let url = format!("{API_URL}/album/{id}", id = album_id);
     let data = CLIENT
         .get(&url)
@@ -63,7 +65,7 @@ pub async fn album(album_id: Id) -> Result<Album, Error> {
 }
 
 /// Search for a track by name or artist.
-pub async fn track_search(q: &str) -> Result<Vec<Track>, Error> {
+pub async fn track_search(q: &str) -> Result<Vec<Track>> {
     let url = format!("{API_URL}/search/track");
     let data: DataWrap<_> = CLIENT
         .get(&url)
@@ -78,7 +80,7 @@ pub async fn track_search(q: &str) -> Result<Vec<Track>, Error> {
 }
 
 /// Fetch a track by ID, returning None if we could not deserialise the response (eg. not found).
-pub async fn track(id: Id) -> Result<Option<Track>, Error> {
+pub async fn track(id: Id) -> Result<Option<Track>> {
     let url = format!("{API_URL}/track/{id}");
     CLIENT
         .get(&url)
@@ -89,6 +91,18 @@ pub async fn track(id: Id) -> Result<Option<Track>, Error> {
         .await
         // assume that if we failed to deserialise the track, it was a "not found" response
         .map_or_else(|_| Ok(None), |track| Ok(Some(track)))
+}
+
+/// Download a track from Deezer and save it to the music cache.
+pub async fn track_preview(preview_url: &str) -> Result<Bytes> {
+    CLIENT
+        .get(preview_url)
+        .send()
+        .await
+        .wrap_err("error downloading a track preview")?
+        .bytes()
+        .await
+        .wrap_err("error reading the response for a track preview download")
 }
 
 /// A helper for serde deserialisation of API responses which are wrapped in

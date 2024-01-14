@@ -1,17 +1,20 @@
 //! Tools for working with the music data in the database.
-use serde::Serialize;
-
-use crate::{deezer, DbConn, Error, ResultExt};
+use crate::{deezer, DbConn};
+use eyre::{Context, Result};
 
 mod bulk_insert;
 mod insert;
+mod meta;
 mod music;
 pub mod pick;
+mod routes;
 
+pub use meta::Meta;
 pub use music::init;
+pub use routes::routes;
 
 /// Get a genre object from the database by ID.
-pub async fn genre(db: &mut DbConn, id: deezer::Id) -> Result<deezer::Genre, Error> {
+pub async fn genre(db: &mut DbConn, id: deezer::Id) -> Result<deezer::Genre> {
     let genre = sqlx::query_as!(
         deezer::Genre,
         "SELECT id, title AS name, picture_url AS picture FROM genre
@@ -29,7 +32,7 @@ pub async fn clip(
     db: &mut DbConn,
     track_id: deezer::Id,
     time: std::ops::Range<chrono::Duration>,
-) -> Result<Vec<u8>, Error> {
+) -> Result<Vec<u8>> {
     let preview_url = sqlx::query_scalar!(
         "SELECT preview_url FROM track WHERE id = $1",
         i32::from(track_id),
@@ -42,26 +45,8 @@ pub async fn clip(
         .wrap_err("error clipping music")
 }
 
-/// Track metadata returned as part of game objects in the API.
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Meta {
-    /// The track's Deezer ID
-    id: deezer::Id,
-    /// Track title
-    title: String,
-    /// Link to the track on Deezer
-    link: String,
-    /// Artist name
-    artist_name: String,
-    /// Album title
-    album_title: String,
-    /// URL of an image of the album cover art
-    album_cover: String,
-}
-
 /// Check if the given track exists, and if it is, make sure it is stored in the database.
-pub async fn exists(db: &mut DbConn, id: deezer::Id) -> Result<bool, Error> {
+pub async fn exists(db: &mut DbConn, id: deezer::Id) -> Result<bool> {
     let exists_in_database =
         sqlx::query_scalar!("SELECT 1 FROM track WHERE track.id = $1", i32::from(id))
             .fetch_optional(&mut *db)
@@ -79,43 +64,5 @@ pub async fn exists(db: &mut DbConn, id: deezer::Id) -> Result<bool, Error> {
             Ok(true)
         }
         None => Ok(false),
-    }
-}
-
-impl Meta {
-    /// Get track metadata from the database by ID.
-    pub async fn get(db: &mut DbConn, id: deezer::Id) -> Result<Self, Error> {
-        let track = sqlx::query_as!(
-            Self,
-            "SELECT
-                track.id,
-                track.title,
-                track.deezer_url AS link,
-                artist.title AS artist_name,
-                album.title AS album_title,
-                album.cover_art_url AS album_cover
-            FROM track
-            INNER JOIN artist ON track.artist_id = artist.id
-            INNER JOIN album ON track.album_id = album.id
-            WHERE track.id = $1",
-            i32::from(id),
-        )
-        .fetch_one(db)
-        .await
-        .wrap_err("error querying track metadata")?;
-        Ok(track)
-    }
-}
-
-impl From<deezer::Track> for Meta {
-    fn from(track: deezer::Track) -> Self {
-        Self {
-            id: track.id,
-            title: track.title,
-            link: track.link,
-            artist_name: track.artist.name,
-            album_title: track.album.title,
-            album_cover: track.album.cover,
-        }
     }
 }

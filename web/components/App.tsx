@@ -10,7 +10,7 @@ export function App() {
             element: <Start />,
         },
         {
-            path: "/game",
+            path: "/games/:gameId",
             element: <Game />,
         },
         // TODO: `/start/timed` and `/start/unlimited` routes

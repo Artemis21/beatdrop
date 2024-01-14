@@ -1,10 +1,10 @@
 //! A cache system for storing preview MP3s from Deezer, and retrieving clips from them.
 use std::{ops::Range, sync::OnceLock};
 
-use eyre::OptionExt;
+use eyre::{Context, OptionExt, Result};
 use rocket::tokio::{fs, task};
 
-use crate::{deezer::CLIENT, Error, ResultExt};
+use crate::deezer;
 
 /// The config for the music cache system, set on startup.
 static CONFIG: OnceLock<Config> = OnceLock::new();
@@ -36,7 +36,7 @@ impl From<&crate::Config> for Config {
 }
 
 /// Transcode a downloaded track from MP3 to WAV, and save it (blocking).
-fn blocking_save_track(path: std::path::PathBuf, mp3_data: &[u8]) -> Result<(), Error> {
+fn blocking_save_track(path: std::path::PathBuf, mp3_data: &[u8]) -> Result<()> {
     let mut decoder = minimp3::Decoder::new(std::io::Cursor::new(mp3_data));
     let first_frame = decoder
         .next_frame()
@@ -68,22 +68,14 @@ fn blocking_save_track(path: std::path::PathBuf, mp3_data: &[u8]) -> Result<(), 
 }
 
 /// Download a track from Deezer and save it to the music cache.
-async fn download_track(config: &Config, track_id: u32, preview: &str) -> Result<(), Error> {
-    let response = CLIENT
-        .get(preview)
-        .send()
-        .await
-        .wrap_err("error downloading a track preview")?;
-    let data = response
-        .bytes()
-        .await
-        .wrap_err("error reading the response for a track preview download")?;
+async fn download_track(config: &Config, track_id: u32, preview: &str) -> Result<()> {
+    let data = deezer::track_preview(preview).await?;
     let path = config.music_dir.join(format!("{}.mp3", track_id));
     task::spawn_blocking(move || blocking_save_track(path, &data)).await?
 }
 
 /// Ensure that a given track is cached, and return the path.
-async fn ensure_cached(track_id: u32, preview: &str) -> Result<std::path::PathBuf, Error> {
+async fn ensure_cached(track_id: u32, preview: &str) -> Result<std::path::PathBuf> {
     let config = CONFIG
         .get()
         .expect("music system used before initialisation");
@@ -98,10 +90,7 @@ async fn ensure_cached(track_id: u32, preview: &str) -> Result<std::path::PathBu
 }
 
 /// Get a clip from a track (blocking).
-fn blocking_clip_track(
-    path: std::path::PathBuf,
-    time: Range<chrono::Duration>,
-) -> Result<Vec<u8>, Error> {
+fn blocking_clip_track(path: std::path::PathBuf, time: Range<chrono::Duration>) -> Result<Vec<u8>> {
     let start = u32::try_from(time.start.num_milliseconds())
         .expect("start time to be positive and not overflow");
     let length = u32::try_from((time.end - time.start).num_milliseconds())
@@ -135,13 +124,25 @@ fn blocking_clip_track(
             .wrap_err("error writing a (right) sample to a WAV file")?;
         samples_read += 1;
     }
-    if samples_read + spec.sample_rate / 2 < samples_to_read {
-        // error if there weren't enough samples to read, giving half a second of leeway
+    // the length of the preview should be 30 seconds, but sometimes it's a little under
+    let remaining_samples = samples_to_read - samples_read;
+    if remaining_samples > spec.sample_rate / 2 {
+        // if it's more than half a second under, error
         Err(eyre::eyre!(
             "could not read enough samples from track ({} < {})",
             samples_read,
             samples_to_read
         ))?;
+    } else {
+        // otherwise just fill in silence
+        for _ in 0..remaining_samples {
+            writer
+                .write_sample(0)
+                .wrap_err("error writing (left) padding to a WAV file")?;
+            writer
+                .write_sample(0)
+                .wrap_err("error writing (right) padding to a WAV file")?;
+        }
     }
     writer.finalize()?;
     Ok(buf)
@@ -149,11 +150,7 @@ fn blocking_clip_track(
 
 /// Get a clip from a track.
 /// The clip is returned as a vector of bytes in WAV format.
-pub async fn clip(
-    track_id: u32,
-    preview: &str,
-    time: Range<chrono::Duration>,
-) -> Result<Vec<u8>, Error> {
+pub async fn clip(track_id: u32, preview: &str, time: Range<chrono::Duration>) -> Result<Vec<u8>> {
     let path = ensure_cached(track_id, preview).await?;
     task::spawn_blocking(move || blocking_clip_track(path, time)).await?
 }

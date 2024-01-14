@@ -1,13 +1,14 @@
 //! Database queries for inserting and updating music data in the database.
 use crate::{
     deezer::{self, Album, Artist, Genre, Track},
-    DbConn, Error, ResultExt,
+    DbConn,
 };
+use eyre::{Context, Result};
 
 /// Insert a track into the database, or update it if it already exists.
 ///
 /// Also inserts or updates objects the track references.
-pub async fn track_with_refs(db: &mut DbConn, track_data: &Track) -> Result<(), Error> {
+pub async fn track_with_refs(db: &mut DbConn, track_data: &Track) -> Result<()> {
     let album_data = deezer::album(track_data.album.id).await?;
     album(db, &album_data).await?;
     for genre_data in &*album_data.genres {
@@ -21,7 +22,7 @@ pub async fn track_with_refs(db: &mut DbConn, track_data: &Track) -> Result<(), 
 /// Insert a track into the database, or update it if it already exists.
 ///
 /// The referenced album and artist must already exist in the database.
-pub async fn track(db: &mut DbConn, track: &Track) -> Result<(), Error> {
+pub async fn track(db: &mut DbConn, track: &Track) -> Result<()> {
     sqlx::query!(
         "INSERT INTO track (id, title, deezer_url, preview_url, deezer_rank, album_id, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7)
         ON CONFLICT (id) DO UPDATE SET
@@ -43,7 +44,7 @@ pub async fn track(db: &mut DbConn, track: &Track) -> Result<(), Error> {
 }
 
 /// Insert an album into the database, or update it if it already exists.
-pub async fn album(db: &mut DbConn, album: &Album) -> Result<(), Error> {
+pub async fn album(db: &mut DbConn, album: &Album) -> Result<()> {
     sqlx::query!(
         "INSERT INTO album (id, title, deezer_url, cover_art_url) VALUES ($1, $2, $3, $4)
         ON CONFLICT (id) DO UPDATE SET
@@ -62,7 +63,7 @@ pub async fn album(db: &mut DbConn, album: &Album) -> Result<(), Error> {
 }
 
 /// Insert a genre object into the database, or update it if it already exists.
-pub async fn genre(db: &mut DbConn, genre: &Genre) -> Result<(), Error> {
+pub async fn genre(db: &mut DbConn, genre: &Genre) -> Result<()> {
     sqlx::query!(
         "INSERT INTO genre (id, title, picture_url) VALUES ($1, $2, $3)
         ON CONFLICT (id) DO UPDATE SET
@@ -87,7 +88,7 @@ pub async fn album_genre(
     db: &mut DbConn,
     album_id: deezer::Id,
     genre_id: deezer::Id,
-) -> Result<(), Error> {
+) -> Result<()> {
     sqlx::query!(
         "INSERT INTO album_genre (album_id, genre_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
         i32::from(album_id),
@@ -100,7 +101,7 @@ pub async fn album_genre(
 }
 
 /// Insert an artist into the database, or update it if it already exists.
-pub async fn artist(db: &mut DbConn, artist: &Artist) -> Result<(), Error> {
+pub async fn artist(db: &mut DbConn, artist: &Artist) -> Result<()> {
     sqlx::query!(
         "INSERT INTO artist (id, title, deezer_url, picture_url) VALUES ($1, $2, $3, $4)
         ON CONFLICT (id) DO UPDATE SET
