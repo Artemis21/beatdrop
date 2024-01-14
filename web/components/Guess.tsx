@@ -5,42 +5,38 @@ import { faForward, faQuestion } from "@fortawesome/free-solid-svg-icons";
 
 export function WrongGuess({ track }: { track: Track }) {
     return (
-        <div className="stack__item stack__item--bad">
-            <img className="stack__item__thumb" src={track.albumCover} />
-            <span className="stack__item__title">{track.title}</span>
-            <span className="stack__item__sub">{track.artistName}</span>
+        <div className="card card--bad">
+            <img className="card__thumb" src={track.albumCover} />
+            <span className="card__title">{track.title}</span>
+            <span className="card__sub">{track.artistName}</span>
         </div>
     );
 }
 
 export function SkippedGuess() {
     return (
-        <div className="stack__item stack__item--skip">
-            <FontAwesomeIcon className="stack__item__thumb" icon={faForward} fixedWidth />
-            <span className="stack__item__title">Skipped</span>
+        <div className="card card--skip">
+            <FontAwesomeIcon className="card__thumb" icon={faForward} fixedWidth />
+            <span className="card__title">Skipped</span>
         </div>
     );
 }
 
 export function EmptyGuess() {
     return (
-        <div className="stack__item stack__item--empty">
-            <FontAwesomeIcon
-                className="stack__item__thumb"
-                icon={faQuestion}
-                fixedWidth
-            />
-            <span className="stack__item__title">-------- -----</span>
-            <span className="stack__item__sub">--- -------</span>
+        <div className="card card--empty">
+            <FontAwesomeIcon className="card__thumb" icon={faQuestion} fixedWidth />
+            <span className="card__title">-------- -----</span>
+            <span className="card__sub">--- -------</span>
         </div>
     );
 }
 
 export function NewGuess({ gameId }: { gameId: number }) {
     return (
-        <div className="stack__item stack__item--active">
+        <div className="card card--active">
             <SongSearch gameId={gameId} />
-            <div className="stack__item__sub stack__item__sub--hint">
+            <div className="card__sub card__sub--hint">
                 Start typing above for suggestions
             </div>
         </div>

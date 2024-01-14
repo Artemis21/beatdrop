@@ -9,6 +9,7 @@ import {
     faInfinity,
     faPlay,
 } from "@fortawesome/free-solid-svg-icons";
+import { Scrollable } from "./Scrollable";
 
 export function Start() {
     const { data, error } = useRecentGames();
@@ -31,17 +32,19 @@ export function Start() {
     return (
         <>
             <Nav />
-            <div className="stack">{buttons}</div>
+            <Scrollable>
+                <div className="card_stack">{buttons}</div>
+            </Scrollable>
         </>
     );
 }
 
 function ResumeButton({ id }: { id: number }) {
     return (
-        <Link to={`/games/${id}`} className="stack__item stack__item--button">
-            <FontAwesomeIcon className="stack__item__thumb" icon={faPlay} fixedWidth />
-            <span className="stack__item__title">Resume</span>
-            <span className="stack__item__sub">You have an ongoing game</span>
+        <Link to={`/games/${id}`} className="card card--button">
+            <FontAwesomeIcon className="card__thumb" icon={faPlay} fixedWidth />
+            <span className="card__title">Resume</span>
+            <span className="card__sub">You have an ongoing game</span>
         </Link>
     );
 }
@@ -57,14 +60,10 @@ function DailyButton({ id }: { id: number | null }) {
         navigate(`/games/${id}`);
     };
     return (
-        <button onClick={click} className="stack__item stack__item--button">
-            <FontAwesomeIcon
-                className="stack__item__thumb"
-                icon={faCalendarDay}
-                fixedWidth
-            />
-            <span className="stack__item__title">Daily</span>
-            <span className="stack__item__sub">
+        <button onClick={click} className="card card--button">
+            <FontAwesomeIcon className="card__thumb" icon={faCalendarDay} fixedWidth />
+            <span className="card__title">Daily</span>
+            <span className="card__sub">
                 {id === null ? "Play today's daily game" : "See your results for today"}
             </span>
         </button>
@@ -73,26 +72,20 @@ function DailyButton({ id }: { id: number | null }) {
 
 function UnlimitedButton() {
     return (
-        <Link to="/start/unlimited" className="stack__item stack__item--button">
-            <FontAwesomeIcon
-                className="stack__item__thumb"
-                icon={faInfinity}
-                fixedWidth
-            />
-            <span className="stack__item__title">Unlimited</span>
-            <span className="stack__item__sub">
-                Play as much as you want, or select a genre
-            </span>
+        <Link to="/start/unlimited" className="card card--button">
+            <FontAwesomeIcon className="card__thumb" icon={faInfinity} fixedWidth />
+            <span className="card__title">Unlimited</span>
+            <span className="card__sub">Play as much as you want, or select a genre</span>
         </Link>
     );
 }
 
 function TimedButton() {
     return (
-        <Link to="/start/timed" className="stack__item stack__item--button">
-            <FontAwesomeIcon className="stack__item__thumb" icon={faClock} fixedWidth />
-            <span className="stack__item__title">Timed</span>
-            <span className="stack__item__sub">
+        <Link to="/start/timed" className="card card--button">
+            <FontAwesomeIcon className="card__thumb" icon={faClock} fixedWidth />
+            <span className="card__title">Timed</span>
+            <span className="card__sub">
                 Submit your guess before the timer runs out!
             </span>
         </Link>

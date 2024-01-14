@@ -1,5 +1,6 @@
 import { Game } from "../api";
 import { WrongGuess, SkippedGuess, EmptyGuess, NewGuess } from "./Guess";
+import { Scrollable } from "./Scrollable";
 
 export function Guesses({ game: { id, guesses, constants } }: { game: Game }) {
     const guessEls = [];
@@ -17,5 +18,9 @@ export function Guesses({ game: { id, guesses, constants } }: { game: Game }) {
             guessEls.push(<EmptyGuess key={n} />);
         }
     }
-    return <div className="stack">{guessEls}</div>;
+    return (
+        <Scrollable>
+            <div className="card_stack">{guessEls}</div>
+        </Scrollable>
+    );
 }

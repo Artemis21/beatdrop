@@ -39,7 +39,7 @@ export function SongSearch({ gameId }: { gameId: number }) {
         button = <GuessButton gameId={gameId} guess={id} />;
     }
     return (
-        <div className="stack__item__title">
+        <div className="card__title">
             <div className="search">
                 <input
                     className="search__input"
