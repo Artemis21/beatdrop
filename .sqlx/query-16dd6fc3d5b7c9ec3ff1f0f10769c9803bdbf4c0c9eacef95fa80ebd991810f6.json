@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id FROM game WHERE\n                account_id = $1\n                AND won IS NULL\n                -- timed games can end without being updated in the database, so\n                -- we have to check for that:\n                AND NOT (is_timed AND started_at < $2)\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "16dd6fc3d5b7c9ec3ff1f0f10769c9803bdbf4c0c9eacef95fa80ebd991810f6"
+}

@@ -1,12 +1,20 @@
 {
-    "db_name": "PostgreSQL",
-    "query": "INSERT INTO track (id, title, deezer_url, preview_url, deezer_rank, album_id, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7)\n        ON CONFLICT (id) DO UPDATE SET\n            title = EXCLUDED.title,\n            deezer_url = EXCLUDED.deezer_url,\n            preview_url = EXCLUDED.preview_url,\n            deezer_rank = EXCLUDED.deezer_rank,\n            album_id = EXCLUDED.album_id,\n            artist_id = EXCLUDED.artist_id",
-    "describe": {
-        "columns": [],
-        "parameters": {
-            "Left": ["Int4", "Varchar", "Varchar", "Varchar", "Int4", "Int4", "Int4"]
-        },
-        "nullable": []
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO track (id, title, deezer_url, preview_url, deezer_rank, album_id, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7)\n        ON CONFLICT (id) DO UPDATE SET\n            title = EXCLUDED.title,\n            deezer_url = EXCLUDED.deezer_url,\n            preview_url = EXCLUDED.preview_url,\n            deezer_rank = EXCLUDED.deezer_rank,\n            album_id = EXCLUDED.album_id,\n            artist_id = EXCLUDED.artist_id",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Int4",
+        "Int4",
+        "Int4"
+      ]
     },
-    "hash": "5b17769c074f421f966386e38f04ee78331d7b14737184a70e15b6dc6ed7f04d"
+    "nullable": []
+  },
+  "hash": "5b17769c074f421f966386e38f04ee78331d7b14737184a70e15b6dc6ed7f04d"
 }

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE game SET won = false WHERE\n                is_timed\n                AND started_at < $1\n                AND won IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "294e4afb9fc8444f8464607a188833440d0d27b79011b33ce1f99c0707f66f8a"
+}

@@ -1,28 +1,34 @@
 {
-    "db_name": "PostgreSQL",
-    "query": "SELECT id, title AS name, picture_url AS picture FROM genre\n        WHERE id = $1",
-    "describe": {
-        "columns": [
-            {
-                "ordinal": 0,
-                "name": "id",
-                "type_info": "Int4"
-            },
-            {
-                "ordinal": 1,
-                "name": "name",
-                "type_info": "Varchar"
-            },
-            {
-                "ordinal": 2,
-                "name": "picture",
-                "type_info": "Varchar"
-            }
-        ],
-        "parameters": {
-            "Left": ["Int4"]
-        },
-        "nullable": [false, false, false]
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, title AS name, picture_url AS picture FROM genre\n        WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "picture",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
     },
-    "hash": "d57f1775dd5cb929b139617da50efae9d7c3f2c175ed0f5cf925481859d68616"
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "d57f1775dd5cb929b139617da50efae9d7c3f2c175ed0f5cf925481859d68616"
 }

@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id FROM game\n            WHERE account_id = $1\n                AND is_daily\n                AND started_at >= DATE_TRUNC('day', TIMEZONE('utc', NOW()))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "6db97fe70217b735759517ab1a03eec0c02cc6d95fd87b32b151f17d832ed3f4"
+}

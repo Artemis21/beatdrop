@@ -1,12 +1,15 @@
 {
-    "db_name": "PostgreSQL",
-    "query": "INSERT INTO album_genre (album_id, genre_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-    "describe": {
-        "columns": [],
-        "parameters": {
-            "Left": ["Int4", "Int4"]
-        },
-        "nullable": []
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO album_genre (album_id, genre_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
     },
-    "hash": "e76c6079eb9cebb3f4569ba37157be483e36c20c82ef047cd469ebc5ce88a0aa"
+    "nullable": []
+  },
+  "hash": "e76c6079eb9cebb3f4569ba37157be483e36c20c82ef047cd469ebc5ce88a0aa"
 }

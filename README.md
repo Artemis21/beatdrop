@@ -2,7 +2,7 @@
 
 ![Screenshot showing beatdrop gameplay](https://github.com/Artemis21/beatdrop/assets/57376638/4d8c6c1b-4b19-4e18-83bb-ec0c800ee348)
 
-Beatdrop is a "name that tune" music guessing game, strongly inspired by the discontinued
+Beatdrop is a name-that-tune music guessing game, strongly inspired by the discontinued
 Heardle game.
 
 ## Deployment
@@ -75,7 +75,6 @@ be present in the repository, which will allow SQLx to compile offline.
 
 Helpful commands:
 
--   `yarn install` -- install dependencies and development tools for JS
 -   `yarn fmt` -- format JS code
 -   `yarn check` -- check and lint JS code
 -   `cargo fmt` -- format Rust code

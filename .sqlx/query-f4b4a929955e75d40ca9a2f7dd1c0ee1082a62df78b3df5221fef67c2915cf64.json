@@ -1,18 +1,22 @@
 {
-    "db_name": "PostgreSQL",
-    "query": "SELECT 1 FROM album WHERE id = $1",
-    "describe": {
-        "columns": [
-            {
-                "ordinal": 0,
-                "name": "?column?",
-                "type_info": "Int4"
-            }
-        ],
-        "parameters": {
-            "Left": ["Int4"]
-        },
-        "nullable": [null]
+  "db_name": "PostgreSQL",
+  "query": "SELECT 1 FROM album WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "?column?",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
     },
-    "hash": "f4b4a929955e75d40ca9a2f7dd1c0ee1082a62df78b3df5221fef67c2915cf64"
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "f4b4a929955e75d40ca9a2f7dd1c0ee1082a62df78b3df5221fef67c2915cf64"
 }

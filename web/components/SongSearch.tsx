@@ -44,7 +44,7 @@ export function SongSearch({ gameId }: { gameId: number }) {
                 <input
                     className="search__input"
                     type="search"
-                    placeholder="Never Gonna..."
+                    placeholder="Title or artist..."
                     onChange={e => {
                         setId(null);
                         setQ(e.target.value);

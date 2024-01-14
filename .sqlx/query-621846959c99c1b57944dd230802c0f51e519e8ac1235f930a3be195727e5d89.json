@@ -1,18 +1,22 @@
 {
-    "db_name": "PostgreSQL",
-    "query": "SELECT preview_url FROM track WHERE id = $1",
-    "describe": {
-        "columns": [
-            {
-                "ordinal": 0,
-                "name": "preview_url",
-                "type_info": "Varchar"
-            }
-        ],
-        "parameters": {
-            "Left": ["Int4"]
-        },
-        "nullable": [false]
+  "db_name": "PostgreSQL",
+  "query": "SELECT preview_url FROM track WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "preview_url",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
     },
-    "hash": "621846959c99c1b57944dd230802c0f51e519e8ac1235f930a3be195727e5d89"
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "621846959c99c1b57944dd230802c0f51e519e8ac1235f930a3be195727e5d89"
 }

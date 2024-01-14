@@ -1,12 +1,17 @@
 {
-    "db_name": "PostgreSQL",
-    "query": "INSERT INTO artist (id, title, deezer_url, picture_url) VALUES ($1, $2, $3, $4)\n        ON CONFLICT (id) DO UPDATE SET\n            title = EXCLUDED.title,\n            deezer_url = EXCLUDED.deezer_url,\n            picture_url = EXCLUDED.picture_url",
-    "describe": {
-        "columns": [],
-        "parameters": {
-            "Left": ["Int4", "Varchar", "Varchar", "Varchar"]
-        },
-        "nullable": []
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO artist (id, title, deezer_url, picture_url) VALUES ($1, $2, $3, $4)\n        ON CONFLICT (id) DO UPDATE SET\n            title = EXCLUDED.title,\n            deezer_url = EXCLUDED.deezer_url,\n            picture_url = EXCLUDED.picture_url",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
     },
-    "hash": "aab987ba2206196d138dc7cf1ff563ef97c7b66482066f687d99deaa70924b1f"
+    "nullable": []
+  },
+  "hash": "aab987ba2206196d138dc7cf1ff563ef97c7b66482066f687d99deaa70924b1f"
 }

@@ -1,18 +1,22 @@
 {
-    "db_name": "PostgreSQL",
-    "query": "SELECT track.id FROM track\n        INNER JOIN album ON track.album_id = album.id\n        INNER JOIN album_genre ON album.id = album_genre.album_id\n        WHERE album_genre.genre_id = $1\n        ORDER BY RANDOM() * track.deezer_rank DESC\n        LIMIT 1",
-    "describe": {
-        "columns": [
-            {
-                "ordinal": 0,
-                "name": "id",
-                "type_info": "Int4"
-            }
-        ],
-        "parameters": {
-            "Left": ["Int4"]
-        },
-        "nullable": [false]
+  "db_name": "PostgreSQL",
+  "query": "SELECT track.id FROM track\n        INNER JOIN album ON track.album_id = album.id\n        INNER JOIN album_genre ON album.id = album_genre.album_id\n        WHERE album_genre.genre_id = $1\n        ORDER BY RANDOM() * track.deezer_rank DESC\n        LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
     },
-    "hash": "88f0e48dfec8c7e91908237fce9806bb2b7c72ab6ac543bedb715b1726af4a86"
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "88f0e48dfec8c7e91908237fce9806bb2b7c72ab6ac543bedb715b1726af4a86"
 }

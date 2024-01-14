@@ -1,18 +1,20 @@
 {
-    "db_name": "PostgreSQL",
-    "query": "SELECT track.id FROM track\n        LEFT JOIN daily_track ON track.id = daily_track.track_id\n        WHERE daily_track.track_id IS NULL OR daily_track.for_day < TIMEZONE('utc', NOW()) - INTERVAL '100 DAY'\n        ORDER BY RANDOM() * track.deezer_rank DESC\n        LIMIT 1",
-    "describe": {
-        "columns": [
-            {
-                "ordinal": 0,
-                "name": "id",
-                "type_info": "Int4"
-            }
-        ],
-        "parameters": {
-            "Left": []
-        },
-        "nullable": [false]
+  "db_name": "PostgreSQL",
+  "query": "SELECT track.id FROM track\n        LEFT JOIN daily_track ON track.id = daily_track.track_id\n        WHERE daily_track.track_id IS NULL OR daily_track.for_day < TIMEZONE('utc', NOW()) - INTERVAL '100 DAY'\n        ORDER BY RANDOM() * track.deezer_rank DESC\n        LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": []
     },
-    "hash": "df80fbff5bffd4c475a6a50bb08b9230552885533d5d28b5d96b002a2f367568"
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "df80fbff5bffd4c475a6a50bb08b9230552885533d5d28b5d96b002a2f367568"
 }
