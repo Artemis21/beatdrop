@@ -1,5 +1,7 @@
 # Beatdrop
 
+![Screenshot showing beatdrop gameplay](https://github.com/Artemis21/beatdrop/assets/57376638/4d8c6c1b-4b19-4e18-83bb-ec0c800ee348)
+
 Beatdrop is a "name that tune" music guessing game, strongly inspired by the discontinued
 Heardle game.
 
