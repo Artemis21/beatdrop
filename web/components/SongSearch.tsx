@@ -34,7 +34,7 @@ export function SongSearch({ gameId }: { gameId: number }) {
     }
     let button;
     if (id === null) {
-        button = <SkipButton gameId={gameId} />;
+        button = <GuessButton gameId={gameId} guess={null} />;
     } else {
         button = <GuessButton gameId={gameId} guess={id} />;
     }
@@ -99,22 +99,25 @@ function SearchResultsPlaceholder({ message }: { message: string }) {
     );
 }
 
-function SkipButton({ gameId }: { gameId: number }) {
+function GuessButton({ gameId, guess }: { gameId: number; guess: number | null }) {
     const newGuess = useNewGuess();
-    const click = () => newGuess(gameId, null);
+    const [isLoading, setIsLoading] = useState(false);
+    const click = async () => {
+        setIsLoading(true);
+        await newGuess(gameId, guess);
+        setIsLoading(false);
+    };
+    const kind = guess === null ? "skip" : "guess";
+    if (isLoading) {
+        return (
+            <button className={`guess_button guess_button--${kind} guess_button--loading`}>
+                ...
+            </button>
+        );
+    }
     return (
-        <button className="guess_button guess_button--skip" onClick={click}>
-            Skip
-        </button>
-    );
-}
-
-function GuessButton({ gameId, guess }: { gameId: number; guess: number }) {
-    const newGuess = useNewGuess();
-    const click = () => newGuess(gameId, guess);
-    return (
-        <button className="guess_button guess_button--guess" onClick={click}>
-            Guess
+        <button className={`guess_button guess_button--${kind}`} onClick={click}>
+            {guess === null ? "Skip" : "Guess"}
         </button>
     );
 }

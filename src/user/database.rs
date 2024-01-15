@@ -40,7 +40,7 @@ impl User {
     ///
     /// See also [`User::from_login`] and [`User::from_claim`].
     pub async fn from_id(db: &mut DbConn, id: i32) -> Result<Option<Self>> {
-        sqlx::query_as!(User, "SELECT * FROM account WHERE id = $1", id)
+        sqlx::query_as!(User, "SELECT * FROM account WHERE id = $1 FOR UPDATE", id)
             .fetch_optional(db)
             .await
             .map_err(Report::from)

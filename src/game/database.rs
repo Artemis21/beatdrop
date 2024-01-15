@@ -116,7 +116,7 @@ impl Game {
 
     /// Get a game from the database by ID.
     pub async fn get(db: &mut DbConn, id: i32) -> Result<Option<Self>> {
-        let Some(game) = sqlx::query_as!(Row, "SELECT * FROM game WHERE id = $1", id)
+        let Some(game) = sqlx::query_as!(Row, "SELECT * FROM game WHERE id = $1 FOR UPDATE", id)
             .fetch_optional(&mut *db)
             .await? else { return Ok(None) };
         let mut game = game.with_guesses(&mut *db).await?;
@@ -183,6 +183,7 @@ impl User {
                 -- timed games can end without being updated in the database, so
                 -- we have to check for that:
                 AND NOT (is_timed AND started_at < $2)
+                FOR UPDATE
             ",
             self.id,
             timed_game_cutoff(),
@@ -198,7 +199,8 @@ impl User {
             "SELECT id FROM game
             WHERE account_id = $1
                 AND is_daily
-                AND started_at >= DATE_TRUNC('day', TIMEZONE('utc', NOW()))",
+                AND started_at >= DATE_TRUNC('day', TIMEZONE('utc', NOW()))
+            FOR UPDATE",
             self.id,
         )
         .fetch_optional(&mut *db)
