@@ -100,23 +100,22 @@ function SearchResultsPlaceholder({ message }: { message: string }) {
 }
 
 function GuessButton({ gameId, guess }: { gameId: number; guess: number | null }) {
-    const newGuess = useNewGuess();
-    const [isLoading, setIsLoading] = useState(false);
-    const click = async () => {
-        setIsLoading(true);
-        await newGuess(gameId, guess);
-        setIsLoading(false);
-    };
+    const { mutate, isLoading } = useNewGuess();
     const kind = guess === null ? "skip" : "guess";
     if (isLoading) {
         return (
-            <button className={`guess_button guess_button--${kind} guess_button--loading`}>
+            <button
+                className={`guess_button guess_button--${kind} guess_button--loading`}
+            >
                 ...
             </button>
         );
     }
     return (
-        <button className={`guess_button guess_button--${kind}`} onClick={click}>
+        <button
+            className={`guess_button guess_button--${kind}`}
+            onClick={() => mutate({ gameId, trackId: guess })}
+        >
             {guess === null ? "Skip" : "Guess"}
         </button>
     );

@@ -51,18 +51,18 @@ function ResumeButton({ id }: { id: number }) {
 
 function DailyButton({ id }: { id: number | null }) {
     const navigate = useNavigate();
-    const newGame = useNewGame();
+    const { mutate, isLoading } = useNewGame();
     const click = async () => {
         if (id === null) {
-            const game = await newGame({ daily: true });
+            const game = await mutate({ daily: true });
             id = game!.id;
         }
         navigate(`/games/${id}`);
     };
     return (
-        <button onClick={click} className="card card--button">
+        <button onClick={isLoading ? undefined : click} className="card card--button">
             <FontAwesomeIcon className="card__thumb" icon={faCalendarDay} fixedWidth />
-            <span className="card__title">Daily</span>
+            <span className="card__title">{isLoading ? "Loading..." : "Daily"}</span>
             <span className="card__sub">
                 {id === null ? "Play today's daily game" : "See your results for today"}
             </span>

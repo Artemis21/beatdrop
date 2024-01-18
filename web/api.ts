@@ -1,4 +1,5 @@
-import useSWR, { useSWRConfig } from "swr";
+import { useState } from "react";
+import useSWR, { Key, MutatorOptions, useSWRConfig } from "swr";
 
 const API_URL = "/api";
 
@@ -173,6 +174,26 @@ export async function searchTracks(q: string): Promise<TrackSearchResults> {
     return await (await endpoint("GET", path)).json();
 }
 
+function useMutate<Options, Result>(
+    key: (_: Options) => Key,
+    mutator: (_: Options) => Result,
+    { populateCache }: { populateCache: boolean },
+) {
+    const { mutate } = useSWRConfig();
+    const [isLoading, setIsLoading] = useState(false);
+    const mutateCb = async (options: Options) => {
+        setIsLoading(true);
+        const args: MutatorOptions = { populateCache };
+        if (populateCache) {
+            args.revalidate = false;
+        }
+        const result = await mutate(key(options), mutator(options), args);
+        setIsLoading(false);
+        return result;
+    };
+    return { mutate: mutateCb, isLoading };
+}
+
 type UpdateUser = {
     displayName?: string | null;
 };
@@ -190,10 +211,7 @@ async function updateUser({ displayName = null }: UpdateUser): Promise<User> {
 }
 
 export function useUpdateUser() {
-    const { mutate } = useSWRConfig();
-    return async (update: UpdateUser) => {
-        return await mutate("/users/me", updateUser(update), { revalidate: false });
-    };
+    return useMutate(() => "/users/me", updateUser, { populateCache: false });
 }
 
 /** Delete the current user's account. */
@@ -204,8 +222,7 @@ async function deleteUser() {
 }
 
 export function useDeleteUser() {
-    const { mutate } = useSWRConfig();
-    return async () => await mutate("/users/me", deleteUser(), { populateCache: false });
+    return useMutate(() => "/users/me", deleteUser, { populateCache: true });
 }
 
 type NewGame = {
@@ -236,10 +253,7 @@ async function newGame({
 }
 
 export function useNewGame() {
-    const { mutate } = useSWRConfig();
-    return async (options: NewGame) => {
-        return await mutate("/games", newGame(options), { populateCache: false });
-    };
+    return useMutate(() => "/games", newGame, { populateCache: false });
 }
 
 /** Guess a track.
@@ -248,7 +262,13 @@ export function useNewGame() {
  * @param trackId The ID of the track to guess, or null to skip a guess.
  * @returns The updated game.
  */
-async function newGuess(gameId: number, trackId: number | null): Promise<Game> {
+async function newGuess({
+    gameId,
+    trackId,
+}: {
+    gameId: number;
+    trackId: number | null;
+}): Promise<Game> {
     const response = await endpoint("POST", `/games/${gameId}/guesses`, {
         body: { track_id: trackId },
     });
@@ -256,12 +276,8 @@ async function newGuess(gameId: number, trackId: number | null): Promise<Game> {
 }
 
 export function useNewGuess() {
-    const { mutate } = useSWRConfig();
-    return async (gameId: number, trackId: number | null) => {
-        return await mutate(["/games/:id", gameId], newGuess(gameId, trackId), {
-            revalidate: false,
-        });
-    };
+    const key = ({ gameId }: { gameId: number }) => ["/games/:id", gameId];
+    return useMutate(key, newGuess, { populateCache: true });
 }
 
 /** The current user account, as returned by the API. */
