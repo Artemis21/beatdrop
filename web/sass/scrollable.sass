@@ -1,47 +1,47 @@
 .scrollable
-  display: flex
-  flex-direction: column
-  flex-grow: 1
-  flex-shrink: 1
-  position: relative
-  width: $body-width
-  overflow-y: auto
+    display: flex
+    flex-direction: column
+    flex-grow: 1
+    flex-shrink: 1
+    position: relative
+    width: $body-width
+    overflow-y: auto
 
-  // this is webkit only, but firefox scrollbars are nice anyway
-  &::-webkit-scrollbar
-    width: 18px
-    background: transparent
+    // this is webkit only, but firefox scrollbars are nice anyway
+    &::-webkit-scrollbar
+        width: 18px
+        background: transparent
 
-  &::-webkit-scrollbar-thumb
-    width: 18px
-    background: #8888
-    border: 6px solid white
-    border-radius: 9px
-    background-clip: padding-box
-    &:hover
-      background: #666
+    &::-webkit-scrollbar-thumb
+        width: 18px
+        background: #8888
+        border: 6px solid white
+        border-radius: 9px
+        background-clip: padding-box
+        &:hover
+            background: #666
 
-  &:before, &:after
-    content: ""
-    position: sticky
-    left: 0
-    right: 0
-    opacity: 0
+    &:before, &:after
+        content: ""
+        position: sticky
+        left: 0
+        right: 0
+        opacity: 0
 
-  &:before
-    top: 0
-    box-shadow: 0 0 20px 10px #0006
+    &:before
+        top: 0
+        box-shadow: 0 0 20px 10px #0006
 
-  &:after
-    bottom: 0
-    box-shadow: 0 0 20px 10px #0006
+    &:after
+        bottom: 0
+        box-shadow: 0 0 20px 10px #0006
 
 .scrollable--scroll-up:before
-  opacity: 1
+    opacity: 1
 
 .scrollable--scroll-down:after
-  opacity: 1
+    opacity: 1
 
 .scrollable__trigger
-  min-height: 1px
-  overflow-y: clip
+    min-height: 1px
+    overflow-y: clip
