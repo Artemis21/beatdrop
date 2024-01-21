@@ -20,15 +20,15 @@ export function GameType({ game: { isDaily, isTimed, genre } }: { game: Game }) 
         name = "Unlimited";
     }
     return (
-        <>
-            <FontAwesomeIcon icon={icon} fixedWidth />
+        <span className="game_type">
+            <FontAwesomeIcon icon={icon} />
             {name}
             {genre && (
                 <>
-                    <FontAwesomeIcon icon={faMusic} fixedWidth />
+                    <FontAwesomeIcon icon={faMusic} />
                     {genre.name}
                 </>
             )}
-        </>
+        </span>
     );
 }

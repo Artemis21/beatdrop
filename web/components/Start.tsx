@@ -42,7 +42,7 @@ export function Start() {
 function ResumeButton({ id }: { id: number }) {
     return (
         <Link to={`/games/${id}`} className="card card--button">
-            <FontAwesomeIcon className="card__thumb" icon={faPlay} fixedWidth />
+            <FontAwesomeIcon className="card__icon" icon={faPlay} />
             <span className="card__title">Resume</span>
             <span className="card__sub">You have an ongoing game</span>
         </Link>
@@ -61,7 +61,7 @@ function DailyButton({ id }: { id: number | null }) {
     };
     return (
         <button onClick={isLoading ? undefined : click} className="card card--button">
-            <FontAwesomeIcon className="card__thumb" icon={faCalendarDay} fixedWidth />
+            <FontAwesomeIcon className="card__icon" icon={faCalendarDay} />
             <span className="card__title">{isLoading ? "Loading..." : "Daily"}</span>
             <span className="card__sub">
                 {id === null ? "Play today's daily game" : "See your results for today"}
@@ -73,9 +73,9 @@ function DailyButton({ id }: { id: number | null }) {
 function UnlimitedButton() {
     return (
         <Link to="/start/unlimited" className="card card--button">
-            <FontAwesomeIcon className="card__thumb" icon={faInfinity} fixedWidth />
+            <FontAwesomeIcon className="card__icon" icon={faInfinity} />
             <span className="card__title">Unlimited</span>
-            <span className="card__sub">Play as much as you want, or select a genre</span>
+            <span className="card__sub">Play as much as you want or pick a genre</span>
         </Link>
     );
 }
@@ -83,10 +83,10 @@ function UnlimitedButton() {
 function TimedButton() {
     return (
         <Link to="/start/timed" className="card card--button">
-            <FontAwesomeIcon className="card__thumb" icon={faClock} fixedWidth />
+            <FontAwesomeIcon className="card__icon" icon={faClock} />
             <span className="card__title">Timed</span>
             <span className="card__sub">
-                Submit your guess before the timer runs out!
+                Make your guess before the timer runs out!
             </span>
         </Link>
     );
