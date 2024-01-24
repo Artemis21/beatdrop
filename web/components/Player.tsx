@@ -143,12 +143,12 @@ function BackButton({
     const icon = <FontAwesomeIcon icon={faRotateLeft} fixedWidth />;
     const seekTo = seekPoints.filter(time => time < currentTime).pop();
     if (seekTo === undefined) {
-        return <div className="control control--disabled">{icon}</div>;
+        return <button aria-label="Backward" className="control control--disabled" disabled>{icon}</button>;
     }
     return (
-        <div className="control control--enabled" onClick={() => setSeek(seekTo)}>
+        <button aria-label="Backward" className="control control--enabled" onClick={() => setSeek(seekTo)}>
             {icon}
-        </div>
+        </button>
     );
 }
 
@@ -164,12 +164,12 @@ function ForwardButton({
     const icon = <FontAwesomeIcon icon={faRotateRight} fixedWidth />;
     const seekTo = seekPoints.filter(time => time > currentTime).shift();
     if (seekTo === undefined) {
-        return <div className="control control--disabled">{icon}</div>;
+        return <button aria-label="Forward" className="control control--disabled" disabled>{icon}</button>;
     }
     return (
-        <div className="control control--enabled" onClick={() => setSeek(seekTo)}>
+        <button aria-label="Forward" className="control control--enabled" onClick={() => setSeek(seekTo)}>
             {icon}
-        </div>
+        </button>
     );
 }
 
@@ -186,23 +186,25 @@ function PlayButton({
     setPaused: (_: boolean) => void;
     setSeek: (_: number) => void;
 }) {
-    let icon, click;
+    let icon, click, label;
     if (paused) {
         icon = faPlay;
+        label = "Play";
         click = () => {
             if (currentTime === duration) setSeek(0);
             setPaused(false);
         };
     } else {
         icon = faPause;
+        label = "Pause";
         click = () => {
             setPaused(true);
             setSeek(currentTime);
         };
     }
     return (
-        <div className="control control--enabled control--play" onClick={click}>
+        <button className="control control--enabled control--play" aria-label={label} onClick={click}>
             <FontAwesomeIcon icon={icon} fixedWidth />
-        </div>
+        </button>
     );
 }
