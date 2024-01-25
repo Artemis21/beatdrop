@@ -2,7 +2,7 @@
 
 @import ./nav
 @import ./player
-@import ./song_search
+@import ./forms
 @import ./game_type
 @import ./scrollable
 @import ./card
@@ -21,3 +21,9 @@ main
     flex-direction: column
     gap: 1rem
     align-items: center
+    padding-bottom: 1rem   // no padding for nav at top
+    box-sizing: border-box
+
+.title, .sub
+    margin: 0
+    text-align: center

@@ -39,7 +39,7 @@ export function SongSearch({ gameId, inputId }: { gameId: number; inputId: strin
         button = <GuessButton gameId={gameId} guess={id} />;
     }
     return (
-        <div className="card__title">
+        <div className="card__title search_and_submit">
             <div className="search">
                 <input
                     className="search__input"
@@ -102,19 +102,13 @@ function SearchResultsPlaceholder({ message }: { message: string }) {
 
 function GuessButton({ gameId, guess }: { gameId: number; guess: number | null }) {
     const { mutate, isLoading } = useNewGuess();
-    const kind = guess === null ? "skip" : "guess";
+    const secondary = guess === null ? "submit--secondary" : "";
     if (isLoading) {
-        return (
-            <button
-                className={`guess_button guess_button--${kind} guess_button--loading`}
-            >
-                ...
-            </button>
-        );
+        return <button className={`submit ${secondary}`}>...</button>;
     }
     return (
         <button
-            className={`guess_button guess_button--${kind}`}
+            className={`submit ${secondary}`}
             onClick={() => mutate({ gameId, trackId: guess })}
         >
             {guess === null ? "Skip" : "Guess"}

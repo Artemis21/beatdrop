@@ -5,9 +5,10 @@ import { faForward, faQuestion } from "@fortawesome/free-solid-svg-icons";
 
 export function WrongGuess({ track }: { track: Track }) {
     return (
-        <div className="card card--with-image card--bad">
+        <div className="card card--bad">
             <div className="card__image">
-                <img src={track.albumCover} />
+                {/* FIXME: pick size appropriately (small/medium/big/xl) */}
+                <img src={`${track.albumCover}?size=xl`} />
             </div>
             <span className="card__title">{track.title}</span>
             <span className="card__sub">{track.artistName}</span>
@@ -17,7 +18,7 @@ export function WrongGuess({ track }: { track: Track }) {
 
 export function SkippedGuess() {
     return (
-        <div className="card card--no-sub">
+        <div className="card">
             <FontAwesomeIcon className="card__icon" icon={faForward} />
             <span className="card__title">Skipped</span>
         </div>
@@ -26,7 +27,7 @@ export function SkippedGuess() {
 
 export function EmptyGuess() {
     return (
-        <div className="card card--with-image">
+        <div className="card">
             <FontAwesomeIcon className="card__icon" icon={faQuestion} />
             <span className="card__title">-------- -----</span>
             <span className="card__sub">--- -------</span>
@@ -36,11 +37,13 @@ export function EmptyGuess() {
 
 export function NewGuess({ gameId }: { gameId: number }) {
     return (
-        <div className="card card--active-guess">
+        <div className="card card--active">
             <SongSearch inputId="new_guess" gameId={gameId} />
-            <label htmlFor="new_guess" className="card__sub">
-                Start typing a song title or artist for suggestions
-            </label>
+            <p className="card__sub">
+                <label htmlFor="new_guess" className="search_label">
+                    Start typing a song title or artist for suggestions.
+                </label>
+            </p>
         </div>
     );
 }

@@ -2,7 +2,7 @@ import { Track } from "../api";
 
 export function TrackCard({ track }: { track: Track }) {
     return (
-        <a className="card card--with-image card--button" href={track.link}>
+        <a className="card card--button" href={track.link}>
             <div className="card__image">
                 <img
                     // FIXME: pick size appropriately (small/medium/big/xl)

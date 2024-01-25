@@ -21,29 +21,27 @@ export function GameOver({ game }: { game: Game }) {
     if (track === null || won === null) {
         throw new Error("GameOver called on uncompleted game.");
     }
+    const type = <GameType game={game} className="card__title__tag" />;
     let outcome;
     if (won) {
         const guessPlural = guesses.length === 1 ? "guess" : "guesses";
         const comment = COMMENTS[Math.min(guesses.length, COMMENTS.length) - 1];
         outcome = (
-            <div className="card card--header card--good">
+
+            <div className="card card--good">
                 <FontAwesomeIcon className="card__icon" icon={faCrown} />
-                <h1 className="card__title">You Won!</h1>
+                <h1 className="card__title">You Won!&ensp;&bull;&ensp;{type}</h1>
                 <div className="card__sub">
                     You took <b>{guesses.length}</b> {guessPlural} - {comment}
-                    <br />
-                    <GameType game={game} />
                 </div>
             </div>
         );
     } else {
         outcome = (
-            <div className="card card--header card--bad">
+            <div className="card card--bad">
                 <FontAwesomeIcon className="card__icon" icon={faHeartCrack} />
-                <h1 className="card__title">Game Over</h1>
-                <p className="card__sub">
-                    <GameType game={game} />
-                </p>
+                <h1 className="card__title">You Lost&ensp;&bull;&ensp;{type}</h1>
+                <div className="card__sub">But you discovered a new song!</div>
             </div>
         );
     }

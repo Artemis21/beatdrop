@@ -1,3 +1,14 @@
+.search_and_submit
+    display: flex
+    gap: 0.5rem
+
+.search_label
+    opacity: 0.6
+    font-size: 0.85rem
+    text-align: center
+    font-style: normal
+    display: block
+
 .search
     position: relative
     flex-grow: 2
@@ -37,16 +48,15 @@
     color: #666
     font-style: italic
 
-.guess_button
+.submit
     font: inherit
     border: 0
     border-radius: 2rem
     padding: 0.5rem 1rem
     cursor: pointer
-
-.guess_button--skip
-    background: #ccc
-
-.guess_button--guess
     background: #282
     color: #fff
+
+.submit--secondary
+    background: #ccc
+    color: #000

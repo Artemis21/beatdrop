@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Game } from "../api";
+import { Genre } from "../api";
 import {
     faCalendarDay,
     faClock,
@@ -7,7 +7,19 @@ import {
     faMusic,
 } from "@fortawesome/free-solid-svg-icons";
 
-export function GameType({ game: { isDaily, isTimed, genre } }: { game: Game }) {
+export type GameTypeAttrs = {
+    isDaily: boolean;
+    isTimed: boolean;
+    genre: Genre | null;
+};
+
+export function GameType({
+    game: { isDaily, isTimed, genre },
+    className = "",
+}: {
+    game: GameTypeAttrs;
+    className?: string;
+}) {
     let icon, name;
     if (isDaily) {
         icon = faCalendarDay;
@@ -20,12 +32,12 @@ export function GameType({ game: { isDaily, isTimed, genre } }: { game: Game }) 
         name = "Unlimited";
     }
     return (
-        <span className="game_type">
-            <FontAwesomeIcon icon={icon} />
+        <span className={`game_type ${className}`}>
+            <FontAwesomeIcon icon={icon} className="game_type__icon" />
             {name}
             {genre && (
                 <>
-                    <FontAwesomeIcon icon={faMusic} />
+                    <FontAwesomeIcon icon={faMusic} className="game_type__icon" />
                     {genre.name}
                 </>
             )}
