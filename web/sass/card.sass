@@ -51,7 +51,9 @@
 
 .card--with-image
     grid-template-columns: 6rem 1fr
+    grid-template-rows: min-content min-content
     padding: 0
+    overflow: clip
 
     .card__icon
         padding-left: 1rem
@@ -61,6 +63,9 @@
 
     .card__sub
         padding: 0 1rem 1rem 0
+
+.card--with-image.card--no-sub .card__title
+    padding-bottom: 1rem
 
 .card--good
     background: #0f04
@@ -78,9 +83,15 @@
 
 .card__image
     grid-area: thumb
-    border-top-left-radius: 1rem
-    border-bottom-left-radius: 1rem
-    width: 6rem
+    overflow: clip
+    width: 100%
+    height: 100%
+    position: relative
+
+    img
+        position: absolute
+        object-fit: cover
+        max-height: 100%
 
 .card__title
     grid-area: title

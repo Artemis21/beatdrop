@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Track, searchTracks, useNewGuess } from "../api";
 import { useThrottled } from "../utils";
 
-export function SongSearch({ gameId }: { gameId: number }) {
+export function SongSearch({ gameId, inputId }: { gameId: number, inputId: string }) {
     const [q, setQ] = useState("");
     const debouncedQ = useThrottled(q, 500);
     const [id, setId] = useState<number | null>(null);
@@ -52,6 +52,7 @@ export function SongSearch({ gameId }: { gameId: number }) {
                     onFocus={() => setActive(true)}
                     onBlur={() => setActive(false)}
                     value={q}
+                    id={inputId}
                 />
                 {results}
             </div>
