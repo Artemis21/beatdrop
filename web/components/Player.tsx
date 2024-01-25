@@ -143,10 +143,18 @@ function BackButton({
     const icon = <FontAwesomeIcon icon={faRotateLeft} fixedWidth />;
     const seekTo = seekPoints.filter(time => time < currentTime).pop();
     if (seekTo === undefined) {
-        return <button aria-label="Backward" className="control control--disabled" disabled>{icon}</button>;
+        return (
+            <button aria-label="Backward" className="control control--disabled" disabled>
+                {icon}
+            </button>
+        );
     }
     return (
-        <button aria-label="Backward" className="control control--enabled" onClick={() => setSeek(seekTo)}>
+        <button
+            aria-label="Backward"
+            className="control control--enabled"
+            onClick={() => setSeek(seekTo)}
+        >
             {icon}
         </button>
     );
@@ -164,10 +172,18 @@ function ForwardButton({
     const icon = <FontAwesomeIcon icon={faRotateRight} fixedWidth />;
     const seekTo = seekPoints.filter(time => time > currentTime).shift();
     if (seekTo === undefined) {
-        return <button aria-label="Forward" className="control control--disabled" disabled>{icon}</button>;
+        return (
+            <button aria-label="Forward" className="control control--disabled" disabled>
+                {icon}
+            </button>
+        );
     }
     return (
-        <button aria-label="Forward" className="control control--enabled" onClick={() => setSeek(seekTo)}>
+        <button
+            aria-label="Forward"
+            className="control control--enabled"
+            onClick={() => setSeek(seekTo)}
+        >
             {icon}
         </button>
     );
@@ -203,7 +219,11 @@ function PlayButton({
         };
     }
     return (
-        <button className="control control--enabled control--play" aria-label={label} onClick={click}>
+        <button
+            className="control control--enabled control--play"
+            aria-label={label}
+            onClick={click}
+        >
             <FontAwesomeIcon icon={icon} fixedWidth />
         </button>
     );

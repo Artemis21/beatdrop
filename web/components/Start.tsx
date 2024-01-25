@@ -85,9 +85,7 @@ function TimedButton() {
         <Link to="/start/timed" className="card card--button">
             <FontAwesomeIcon className="card__icon" icon={faClock} />
             <span className="card__title">Timed</span>
-            <span className="card__sub">
-                Make your guess before the timer runs out!
-            </span>
+            <span className="card__sub">Make your guess before the timer runs out!</span>
         </Link>
     );
 }

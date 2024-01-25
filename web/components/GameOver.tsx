@@ -13,7 +13,7 @@ const COMMENTS = [
     "pretty good.",
     "not bad.",
     "eh, ok.",
-    "at least you got there in the end..."
+    "at least you got there in the end...",
 ];
 
 export function GameOver({ game }: { game: Game }) {
@@ -25,26 +25,32 @@ export function GameOver({ game }: { game: Game }) {
     if (won) {
         const guessPlural = guesses.length === 1 ? "guess" : "guesses";
         const comment = COMMENTS[Math.min(guesses.length, COMMENTS.length) - 1];
-        outcome = <div className="card card--header card--good">
-            <FontAwesomeIcon className="card__icon" icon={faCrown} />
-            <h1 className="card__title">You Won!</h1>
-            <div className="card__sub">
-                You took <b>{guesses.length}</b> {guessPlural} - {comment}
-                <br />
-                <GameType game={game} />
+        outcome = (
+            <div className="card card--header card--good">
+                <FontAwesomeIcon className="card__icon" icon={faCrown} />
+                <h1 className="card__title">You Won!</h1>
+                <div className="card__sub">
+                    You took <b>{guesses.length}</b> {guessPlural} - {comment}
+                    <br />
+                    <GameType game={game} />
+                </div>
             </div>
-        </div>;
+        );
     } else {
-        outcome = <div className="card card--header card--bad">
-            <FontAwesomeIcon className="card__icon" icon={faHeartCrack} />
-            <h1 className="card__title">Game Over</h1>
-            <p className="card__sub"><GameType game={game} /></p>
-        </div>;
+        outcome = (
+            <div className="card card--header card--bad">
+                <FontAwesomeIcon className="card__icon" icon={faHeartCrack} />
+                <h1 className="card__title">Game Over</h1>
+                <p className="card__sub">
+                    <GameType game={game} />
+                </p>
+            </div>
+        );
     }
     return (
         <Scrollable>
             <div className="card_stack">
-                { outcome }
+                {outcome}
                 <TrackCard track={track} />
                 <Link to="/" className="card card--button">
                     <FontAwesomeIcon className="card__icon" icon={faPlay} />
