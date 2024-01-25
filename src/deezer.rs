@@ -113,6 +113,14 @@ pub struct DataWrap<T> {
     data: T,
 }
 
+impl<T> std::ops::Deref for DataWrap<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.data
+    }
+}
+
 /// An artist object returned by the API.
 #[derive(Debug, Deserialize)]
 pub struct Artist {
@@ -192,11 +200,11 @@ pub struct Album {
 #[serde(transparent)]
 pub struct Id(pub u32);
 
-impl<T> std::ops::Deref for DataWrap<T> {
-    type Target = T;
+impl std::ops::Deref for Id {
+    type Target = u32;
 
     fn deref(&self) -> &Self::Target {
-        &self.data
+        &self.0
     }
 }
 

@@ -155,6 +155,13 @@ export function useRecentGames(): Resource<RecentGames> {
     return useSWR("/games", fetch);
 }
 
+export function useGenres(): Resource<GenreList> {
+    const fetch = async (path: "/genres") => {
+        return await (await endpoint("GET", path)).json();
+    };
+    return useSWR("/genres", fetch);
+}
+
 export function useAudio(gameId: number, guesses: number): Resource<HTMLAudioElement> {
     type Key = ["/games/:id/clip", number, number];
     const fetch = async (key: Key) => {
@@ -339,4 +346,9 @@ export type GameConstants = {
 /** Search results for a track search, as returned by the API. */
 export type TrackSearchResults = {
     tracks: Track[];
+};
+
+/** A list of genres returned by the API. */
+export type GenreList = {
+    genres: Genre[];
 };
