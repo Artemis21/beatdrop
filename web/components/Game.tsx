@@ -1,7 +1,6 @@
 import { useGame } from "../api";
 import { Loading, Error } from "./Placeholder";
 import { Guesses } from "./Guesses";
-import { Nav } from "./Nav";
 import { Player } from "./Player";
 import { GameOver } from "./GameOver";
 import { useNavigate, useParams } from "react-router-dom";
@@ -25,7 +24,6 @@ export function Game() {
     }
     return (
         <>
-            <Nav />
             {game}
             <Player game={data} />
         </>

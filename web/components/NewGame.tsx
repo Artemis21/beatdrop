@@ -3,7 +3,6 @@ import { useNewGame } from "../api";
 import { useNavigate } from "react-router-dom";
 import { Genre, useGenres } from "../api";
 import { Error, Loading } from "./Placeholder";
-import { Nav } from "./Nav";
 import { Scrollable } from "./Scrollable";
 import { GameType } from "./GameType";
 import { useState } from "react";
@@ -22,7 +21,6 @@ export function NewGame() {
     );
     return (
         <>
-            <Nav />
             <h1 className="title">New Game</h1>
             <h2 className="sub">
                 <GameType game={{ isDaily: false, isTimed: timed, genre }} />

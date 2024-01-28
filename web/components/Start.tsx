@@ -1,7 +1,6 @@
 import { useNewGame, useRecentGames } from "../api";
 import { useNavigate } from "react-router-dom";
 import { Error, Loading } from "./Placeholder";
-import { Nav } from "./Nav";
 import {
     faCalendarDay,
     faClock,
@@ -30,12 +29,9 @@ export function Start() {
         buttons.push(<TimedButton key="timed" />);
     }
     return (
-        <>
-            <Nav />
-            <Scrollable>
-                <div className="card_stack">{buttons}</div>
-            </Scrollable>
-        </>
+        <Scrollable>
+            <div className="card_stack">{buttons}</div>
+        </Scrollable>
     );
 }
 
