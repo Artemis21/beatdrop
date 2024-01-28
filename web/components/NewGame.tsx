@@ -1,4 +1,6 @@
 import { useSearchParams } from "react-router-dom";
+import { useNewGame } from "../api";
+import { useNavigate } from "react-router-dom";
 import { Genre, useGenres } from "../api";
 import { Error, Loading } from "./Placeholder";
 import { Nav } from "./Nav";
@@ -8,7 +10,6 @@ import { useState } from "react";
 import { Card } from "./Card";
 
 export function NewGame() {
-    // TODO: refactor
     const [params] = useSearchParams();
     const timed = params.get("timed") === "true";
     const { data, error } = useGenres();
@@ -30,33 +31,91 @@ export function NewGame() {
                 Pick a genre, or leave blank to select randomly
             </label>
             <div className="search_and_submit">
-                <input
-                    className="search__input"
-                    type="search"
-                    placeholder="Alternative Rock..."
-                    onChange={e => setFilter(e.target.value)}
-                    value={filter}
-                    id="genre_search"
+                <Filter
+                    filter={filter}
+                    setFilter={setFilter}
+                    genre={genre}
+                    setGenre={setGenre}
                 />
-                <button className="submit">Start</button>
+                <StartGame timed={timed} genre={genre} />
             </div>
             <Scrollable>
                 <div className="card_stack">
                     {genres.map(g => {
                         return (
-                            <Card
+                            <Genre
                                 key={g.id}
-                                title={g.name}
-                                image={{ src: `${g.picture}?size=xl`, alt: g.name }}
-                                onClick={() =>
-                                    g.id === genre?.id ? setGenre(null) : setGenre(g)
-                                }
-                                active={g.id === genre?.id}
+                                genre={g}
+                                activeGenre={genre}
+                                setActiveGenre={setGenre}
                             />
                         );
                     })}
                 </div>
             </Scrollable>
         </>
+    );
+}
+
+export function StartGame({ timed, genre }: { timed: boolean; genre: Genre | null }) {
+    const navigate = useNavigate();
+    const { mutate, isLoading } = useNewGame();
+    if (isLoading) {
+        return <button className="submit">...</button>;
+    }
+    const startGame = async () => {
+        const game = await mutate({ timed, genreId: genre?.id });
+        navigate(`/games/${game!.id}`);
+    };
+    return (
+        <button className="submit" onClick={startGame}>
+            Start
+        </button>
+    );
+}
+
+export function Filter({
+    filter,
+    genre,
+    setFilter,
+    setGenre,
+}: {
+    filter: string;
+    genre: Genre | null;
+    setFilter: (_: string) => void;
+    setGenre: (_: Genre | null) => void;
+}) {
+    return (
+        <input
+            className="search__input"
+            type="search"
+            placeholder="Alternative Rock..."
+            onChange={e => {
+                setFilter(e.target.value);
+                setGenre(null);
+            }}
+            value={genre?.name || filter}
+            id="genre_search"
+        />
+    );
+}
+
+export function Genre({
+    activeGenre,
+    setActiveGenre,
+    genre,
+}: {
+    activeGenre: Genre | null;
+    setActiveGenre: (_: Genre | null) => void;
+    genre: Genre;
+}) {
+    const active = genre.id === activeGenre?.id;
+    return (
+        <Card
+            title={genre.name}
+            image={{ src: `${genre.picture}?size=xl`, alt: genre.name }}
+            onClick={() => (active ? setActiveGenre(null) : setActiveGenre(genre))}
+            active={active}
+        />
     );
 }

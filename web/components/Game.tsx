@@ -7,6 +7,7 @@ import { GameOver } from "./GameOver";
 import { useNavigate, useParams } from "react-router-dom";
 
 export function Game() {
+    // TODO: implement timed games
     const { gameId } = useParams();
     const { data, error } = useGame(Number(gameId));
     const navigate = useNavigate();
