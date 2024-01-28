@@ -12,7 +12,9 @@ export function Nav() {
             {/* TODO: make these working links */}
             <FontAwesomeIcon className="nav__icon" icon={faChartSimple} fixedWidth />
             <FontAwesomeIcon className="nav__icon" icon={faUser} fixedWidth />
-            <FontAwesomeIcon className="nav__icon" icon={faInfo} fixedWidth />
+            <Link to="/info" className="nav__icon">
+                <FontAwesomeIcon className="nav__icon" icon={faInfo} fixedWidth />
+            </Link>
         </nav>
     );
 }

@@ -11,6 +11,7 @@ import {
 import { classModifiers } from "../utils";
 
 export function Player({ game }: { game: Game }) {
+    // TODO: Properly attribute the music to Deezer.
     const { data: audio, error } = useAudio(game.id, game.guesses.length);
     const [seek, setSeek] = useState(0);
     const [paused, setPaused] = useState(true);

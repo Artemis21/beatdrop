@@ -72,7 +72,7 @@ function DailyButton({ id }: { id: number | null }) {
 function UnlimitedButton() {
     return (
         <Card title="Unlimited" icon={faInfinity} link="/start?timed=false">
-            Play as much as you want or picka a genre
+            Play as much as you want or pick a genre
         </Card>
     );
 }

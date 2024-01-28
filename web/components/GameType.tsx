@@ -8,13 +8,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export type GameTypeAttrs = {
-    isDaily: boolean;
-    isTimed: boolean;
-    genre: Genre | null;
+    isDaily?: boolean;
+    isTimed?: boolean;
+    genre?: Genre | null;
 };
 
 export function GameType({
-    game: { isDaily, isTimed, genre },
+    game: { isDaily = false, isTimed = false, genre = null },
     className = "",
 }: {
     game: GameTypeAttrs;
