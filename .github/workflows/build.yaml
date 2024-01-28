@@ -17,10 +17,19 @@ jobs:
     - name: Set up rust
       uses: dtolnay/rust-toolchain@stable
 
+    # Yep, we do run setup-node twice...
+    # https://github.com/actions/setup-node/issues/182
     - name: Set up node
       uses: actions/setup-node@v4
       with:
         node-version: lts/*
+
+    - name: Enable corepack
+      run: corepack enable
+
+    - name: Set up yarn
+      uses: actions/setup-node@v4
+      with:
         cache: 'yarn'
 
     - name: Build
