@@ -8,6 +8,7 @@ import {
     faRotateLeft,
     faRotateRight,
 } from "@fortawesome/free-solid-svg-icons";
+import { classModifiers } from "../utils";
 
 export function Player({ game }: { game: Game }) {
     const { data: audio, error } = useAudio(game.id, game.guesses.length);
@@ -142,18 +143,13 @@ function BackButton({
 }) {
     const icon = <FontAwesomeIcon icon={faRotateLeft} fixedWidth />;
     const seekTo = seekPoints.filter(time => time < currentTime).pop();
-    if (seekTo === undefined) {
-        return (
-            <button aria-label="Backward" className="control control--disabled" disabled>
-                {icon}
-            </button>
-        );
-    }
+    const enabled = seekTo !== undefined;
     return (
         <button
             aria-label="Backward"
-            className="control control--enabled"
-            onClick={() => setSeek(seekTo)}
+            className={classModifiers("control", { enabled, disabled: !enabled })}
+            onClick={enabled ? () => setSeek(seekTo) : undefined}
+            disabled={!enabled}
         >
             {icon}
         </button>
@@ -171,18 +167,13 @@ function ForwardButton({
 }) {
     const icon = <FontAwesomeIcon icon={faRotateRight} fixedWidth />;
     const seekTo = seekPoints.filter(time => time > currentTime).shift();
-    if (seekTo === undefined) {
-        return (
-            <button aria-label="Forward" className="control control--disabled" disabled>
-                {icon}
-            </button>
-        );
-    }
+    const enabled = seekTo !== undefined;
     return (
         <button
             aria-label="Forward"
-            className="control control--enabled"
-            onClick={() => setSeek(seekTo)}
+            className={classModifiers("control", { enabled, disabled: !enabled })}
+            onClick={enabled ? () => setSeek(seekTo) : undefined}
+            disabled={!enabled}
         >
             {icon}
         </button>

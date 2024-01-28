@@ -5,6 +5,7 @@ import { Nav } from "./Nav";
 import { Scrollable } from "./Scrollable";
 import { GameType } from "./GameType";
 import { useState } from "react";
+import { Card } from "./Card";
 
 export function NewGame() {
     // TODO: refactor
@@ -42,23 +43,16 @@ export function NewGame() {
             <Scrollable>
                 <div className="card_stack">
                     {genres.map(g => {
-                        const active = g.id === genre?.id ? "card--active" : "";
-                        const click = () =>
-                            g.id === genre?.id ? setGenre(null) : setGenre(g);
                         return (
-                            <div
-                                // FIXME: this should really be a button, but for
-                                // some reason that breaks the styling. Investigate.
-                                role="button"
-                                className={`card card--button ${active}`}
+                            <Card
                                 key={g.id}
-                                onClick={click}
-                            >
-                                <div className="card__image">
-                                    <img src={`${g.picture}?size=xl`} alt={g.name} />
-                                </div>
-                                <span className="card__title">{g.name}</span>
-                            </div>
+                                title={g.name}
+                                image={{ src: `${g.picture}?size=xl`, alt: g.name }}
+                                onClick={() =>
+                                    g.id === genre?.id ? setGenre(null) : setGenre(g)
+                                }
+                                active={g.id === genre?.id}
+                            />
                         );
                     })}
                 </div>

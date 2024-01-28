@@ -1,10 +1,9 @@
-import { Link } from "react-router-dom";
 import { Game } from "../api";
 import { GameType } from "./GameType";
 import { Scrollable } from "./Scrollable";
 import { TrackCard } from "./TrackCard";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCrown, faHeartCrack, faPlay } from "@fortawesome/free-solid-svg-icons";
+import { Card } from "./Card";
 
 const COMMENTS = [
     "wow!!",
@@ -27,22 +26,15 @@ export function GameOver({ game }: { game: Game }) {
         const guessPlural = guesses.length === 1 ? "guess" : "guesses";
         const comment = COMMENTS[Math.min(guesses.length, COMMENTS.length) - 1];
         outcome = (
-
-            <div className="card card--good">
-                <FontAwesomeIcon className="card__icon" icon={faCrown} />
-                <h1 className="card__title">You Won!&ensp;&bull;&ensp;{type}</h1>
-                <div className="card__sub">
-                    You took <b>{guesses.length}</b> {guessPlural} - {comment}
-                </div>
-            </div>
+            <Card title={<>You won!&ensp;&bull;&ensp;{type}</>} icon={faCrown} good>
+                You took <b>{guesses.length}</b> {guessPlural} - {comment}
+            </Card>
         );
     } else {
         outcome = (
-            <div className="card card--bad">
-                <FontAwesomeIcon className="card__icon" icon={faHeartCrack} />
-                <h1 className="card__title">You Lost&ensp;&bull;&ensp;{type}</h1>
-                <div className="card__sub">But you discovered a new song!</div>
-            </div>
+            <Card title={<>You Lost&ensp;&bull;&ensp;{type}</>} icon={faHeartCrack} bad>
+                But you discovered a new song!
+            </Card>
         );
     }
     return (
@@ -50,11 +42,9 @@ export function GameOver({ game }: { game: Game }) {
             <div className="card_stack">
                 {outcome}
                 <TrackCard track={track} />
-                <Link to="/" className="card card--button">
-                    <FontAwesomeIcon className="card__icon" icon={faPlay} />
-                    <span className="card__title">New Game</span>
-                    <span className="card__sub">Click to play again</span>
-                </Link>
+                <Card title="New Game" icon={faPlay} link="/">
+                    Click to play again
+                </Card>
             </div>
         </Scrollable>
     );

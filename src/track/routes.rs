@@ -38,7 +38,8 @@ struct Genres {
 /// Get a list of common genres.
 #[get("/genres")]
 async fn list_genres() -> Result<Json<Genres>, ApiError> {
-    let genres = deezer::genres().await?
+    let genres = deezer::genres()
+        .await?
         .into_iter()
         // remove genre ID 0, which is just "any genre"
         .filter(|genre| *genre.id != 0)

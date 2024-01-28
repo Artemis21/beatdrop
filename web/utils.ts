@@ -41,3 +41,17 @@ export function useTweened(target: number, time: number): number {
     }, [anchor, target, time]);
     return tweened;
 }
+
+/**
+ * Generate `classNames` of the form `base base--mod1 base--mod2` where `base`
+ * is the first parameter and `mod1` and `mod2` are keys of the second
+ * parameter. Modifiers will only be included if the corresponding value is
+ * truthy.
+ */
+export function classModifiers(base: string, modifiers: Record<string, unknown>): string {
+    let className = base;
+    for (const [modifier, enabled] of Object.entries(modifiers)) {
+        if (enabled) className += ` ${base}--${modifier}`;
+    }
+    return className;
+}

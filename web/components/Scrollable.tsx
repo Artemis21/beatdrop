@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
+import { classModifiers } from "../utils";
 
 export function Scrollable({ children }: { children: ReactNode }) {
     const top = useRef<HTMLDivElement | null>(null);
@@ -19,11 +20,13 @@ export function Scrollable({ children }: { children: ReactNode }) {
         observer.observe(top.current);
         observer.observe(bottom.current);
     }, [top, bottom, setScrollDown, setScrollUp]);
-    let className = "scrollable";
-    if (scrollUp) className += " scrollable--scroll-up";
-    if (scrollDown) className += " scrollable--scroll-down";
     return (
-        <div className={className}>
+        <div
+            className={classModifiers("scrollable", {
+                "scroll-up": scrollUp,
+                "scroll-down": scrollDown,
+            })}
+        >
             <div className="scrollable__trigger" ref={top}></div>
             {children}
             <div className="scrollable__trigger" ref={bottom}></div>

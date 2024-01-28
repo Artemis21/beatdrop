@@ -132,6 +132,8 @@ async fn new_guess(
             return Err(ApiError::not_found("given track ID does not exist"));
         }
     }
+    // TODO: if the guessed song is very similar in title & artist to the answer,
+    //       change it to the answer (avoids irritations with variants)
     game.new_guess(&mut tx, body.track_id).await?;
     game.end_if_over(&mut tx).await?;
     let game = game.into_response(&mut tx).await?;

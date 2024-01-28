@@ -1,8 +1,7 @@
 import { useNewGame, useRecentGames } from "../api";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Error, Loading } from "./Placeholder";
 import { Nav } from "./Nav";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCalendarDay,
     faClock,
@@ -10,6 +9,7 @@ import {
     faPlay,
 } from "@fortawesome/free-solid-svg-icons";
 import { Scrollable } from "./Scrollable";
+import { Card } from "./Card";
 
 export function Start() {
     const { data, error } = useRecentGames();
@@ -41,11 +41,9 @@ export function Start() {
 
 function ResumeButton({ id }: { id: number }) {
     return (
-        <Link to={`/games/${id}`} className="card card--button">
-            <FontAwesomeIcon className="card__icon" icon={faPlay} />
-            <span className="card__title">Resume</span>
-            <span className="card__sub">You have an ongoing game</span>
-        </Link>
+        <Card title="Resume" icon={faPlay} link={`/games/${id}`}>
+            You have an ongoing game
+        </Card>
     );
 }
 
@@ -59,33 +57,34 @@ function DailyButton({ id }: { id: number | null }) {
         }
         navigate(`/games/${id}`);
     };
-    return (
-        <button onClick={isLoading ? undefined : click} className="card card--button">
-            <FontAwesomeIcon className="card__icon" icon={faCalendarDay} />
-            <span className="card__title">{isLoading ? "Loading..." : "Daily"}</span>
-            <span className="card__sub">
-                {id === null ? "Play today's daily game" : "See your results for today"}
-            </span>
-        </button>
-    );
+    const sub = id === null ? "Play today's daily game" : "See your results for today";
+    if (isLoading) {
+        return (
+            <Card title="Loading..." icon={faCalendarDay}>
+                {sub}
+            </Card>
+        );
+    } else {
+        return (
+            <Card title="Daily" icon={faCalendarDay} onClick={click}>
+                {sub}
+            </Card>
+        );
+    }
 }
 
 function UnlimitedButton() {
     return (
-        <Link to="/start?timed=false" className="card card--button">
-            <FontAwesomeIcon className="card__icon" icon={faInfinity} />
-            <span className="card__title">Unlimited</span>
-            <span className="card__sub">Play as much as you want or pick a genre</span>
-        </Link>
+        <Card title="Unlimited" icon={faInfinity} link="/start?timed=false">
+            Play as much as you want or picka a genre
+        </Card>
     );
 }
 
 function TimedButton() {
     return (
-        <Link to="/start?timed=true" className="card card--button">
-            <FontAwesomeIcon className="card__icon" icon={faClock} />
-            <span className="card__title">Timed</span>
-            <span className="card__sub">Make your guess before the timer runs out!</span>
-        </Link>
+        <Card title="Timed" icon={faClock} link="/start?timed=true">
+            Make your guess before the timer runs out!
+        </Card>
     );
 }

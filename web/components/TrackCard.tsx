@@ -1,17 +1,15 @@
 import { Track } from "../api";
+import { Card } from "./Card";
 
 export function TrackCard({ track }: { track: Track }) {
+    const image = {
+        // FIXME: pick size appropriately (small/medium/big/xl)
+        src: `${track.albumCover}?size=xl`,
+        alt: `Album cover for ${track.albumTitle}`,
+    };
     return (
-        <a className="card card--button" href={track.link}>
-            <div className="card__image">
-                <img
-                    // FIXME: pick size appropriately (small/medium/big/xl)
-                    src={`${track.albumCover}?size=xl`}
-                    alt={`Album cover for ${track.albumTitle}`}
-                />
-            </div>
-            <span className="card__title">{track.title}</span>
-            <span className="card__sub">{track.artistName}</span>
-        </a>
+        <Card title={track.title} image={image} link={track.link}>
+            {track.artistName}
+        </Card>
     );
 }

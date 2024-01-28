@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Track, searchTracks, useNewGuess } from "../api";
-import { useThrottled } from "../utils";
+import { useThrottled, classModifiers } from "../utils";
 
 export function SongSearch({ gameId, inputId }: { gameId: number; inputId: string }) {
     const [q, setQ] = useState("");
@@ -39,7 +39,7 @@ export function SongSearch({ gameId, inputId }: { gameId: number; inputId: strin
         button = <GuessButton gameId={gameId} guess={id} />;
     }
     return (
-        <div className="card__title search_and_submit">
+        <div className="search_and_submit">
             <div className="search">
                 <input
                     className="search__input"
@@ -102,15 +102,12 @@ function SearchResultsPlaceholder({ message }: { message: string }) {
 
 function GuessButton({ gameId, guess }: { gameId: number; guess: number | null }) {
     const { mutate, isLoading } = useNewGuess();
-    const secondary = guess === null ? "submit--secondary" : "";
+    const className = classModifiers("submit", { secondary: guess === null });
     if (isLoading) {
-        return <button className={`submit ${secondary}`}>...</button>;
+        return <button className={className}>...</button>;
     }
     return (
-        <button
-            className={`submit ${secondary}`}
-            onClick={() => mutate({ gameId, trackId: guess })}
-        >
+        <button className={className} onClick={() => mutate({ gameId, trackId: guess })}>
             {guess === null ? "Skip" : "Guess"}
         </button>
     );
