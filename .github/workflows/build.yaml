@@ -1,0 +1,33 @@
+name: Build server for linux
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  build:
+    name: Build server and publish release
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout project
+      uses: actions/checkout@v4
+
+    - name: Set up rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Set up node
+      uses: actions/setup-node@v4
+      with:
+        node-version: lts
+        cache: 'yarn'
+
+    - name: Build
+      run: cargo build --release --locked
+
+    - name: Create release
+      run: gh release create ${{ github.sha }} target/release/beatdrop
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
