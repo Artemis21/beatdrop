@@ -22,6 +22,11 @@ fn build_assets(dist: &std::path::Path) {
     if dist.try_exists().unwrap_or(false) {
         std::fs::remove_dir_all(dist).expect("failed to remove old dist");
     }
+    // Ensure parcel is installed
+    std::process::Command::new("yarn")
+        .args(["--immutable"])
+        .status()
+        .expect("failed to run `yarn install`");
     // Build web assets
     std::process::Command::new("yarn")
         .args([
@@ -33,7 +38,7 @@ fn build_assets(dist: &std::path::Path) {
             "--no-source-maps",
         ])
         .status()
-        .expect("failed to run `yarn build`");
+        .expect("failed to run `yarn parcel build`");
 }
 
 fn asset_routes(dist: &std::path::Path) -> String {
