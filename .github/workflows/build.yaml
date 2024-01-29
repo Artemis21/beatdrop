@@ -41,6 +41,9 @@ jobs:
     - name: Build
       run: cargo build --release --locked
 
+    - name: Make binary executable
+      run: chmod +x target/release/beatdrop
+
     - name: Cache target dir
       uses: actions/cache/save@v4
       with:
