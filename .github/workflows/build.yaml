@@ -48,7 +48,7 @@ jobs:
         key: beatdrop-main-target
 
     - name: Create release
-      run: gh release create ${{ github.sha }} target/release/beatdrop
+      run: gh release create commit-${{ github.sha }} target/release/beatdrop
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
