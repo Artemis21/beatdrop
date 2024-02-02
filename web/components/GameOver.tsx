@@ -41,7 +41,7 @@ export function GameOver({ game }: { game: Game }) {
         <Scrollable>
             <div className="card_stack">
                 {outcome}
-                <TrackCard track={track} />
+                <TrackCard track={track} link />
                 <Card title="New Game" icon={faPlay} link="/">
                     Click to play again
                 </Card>

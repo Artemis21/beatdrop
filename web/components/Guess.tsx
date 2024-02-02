@@ -2,18 +2,10 @@ import { Track } from "../api";
 import { SongSearch } from "./SongSearch";
 import { faForward, faQuestion } from "@fortawesome/free-solid-svg-icons";
 import { Card } from "./Card";
+import { TrackCard } from "./TrackCard";
 
 export function WrongGuess({ track }: { track: Track }) {
-    const image = {
-        // FIXME: pick size appropriately (small/medium/big/xl)
-        src: `${track.albumCover}?size=xl`,
-        alt: `Album cover for ${track.albumTitle}`,
-    };
-    return (
-        <Card title={track.title} image={image} bad>
-            {track.artistName}
-        </Card>
-    );
+    return <TrackCard track={track} bad />;
 }
 
 export function SkippedGuess() {
