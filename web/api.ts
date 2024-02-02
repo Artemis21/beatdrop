@@ -218,7 +218,7 @@ async function updateUser({ displayName = null }: UpdateUser): Promise<User> {
 }
 
 export function useUpdateUser() {
-    return useMutate(() => "/users/me", updateUser, { populateCache: false });
+    return useMutate(() => "/users/me", updateUser, { populateCache: true });
 }
 
 /** Delete the current user's account. */
@@ -229,7 +229,7 @@ async function deleteUser() {
 }
 
 export function useDeleteUser() {
-    return useMutate(() => "/users/me", deleteUser, { populateCache: true });
+    return useMutate(() => "/users/me", deleteUser, { populateCache: false });
 }
 
 type NewGame = {

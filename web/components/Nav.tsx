@@ -9,9 +9,11 @@ export function Nav() {
                 Beatdrop
             </Link>
             <span className="nav__pad"></span>
-            {/* TODO: make these working links */}
+            {/* TODO: actually add stats */}
             <FontAwesomeIcon className="nav__icon" icon={faChartSimple} fixedWidth />
-            <FontAwesomeIcon className="nav__icon" icon={faUser} fixedWidth />
+            <Link to="/user" className="nav__icon">
+                <FontAwesomeIcon className="nav__icon" icon={faUser} fixedWidth />
+            </Link>
             <Link to="/info" className="nav__icon">
                 <FontAwesomeIcon className="nav__icon" icon={faInfo} fixedWidth />
             </Link>

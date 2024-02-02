@@ -28,7 +28,7 @@ export function NewGame() {
             <label htmlFor="genre_search">
                 Pick a genre, or leave blank to select randomly
             </label>
-            <div className="search_and_submit">
+            <div className="form_row">
                 <Filter
                     filter={filter}
                     setFilter={setFilter}
@@ -85,7 +85,7 @@ export function Filter({
 }) {
     return (
         <input
-            className="search__input"
+            className="input"
             type="search"
             placeholder="Alternative Rock..."
             onChange={e => {

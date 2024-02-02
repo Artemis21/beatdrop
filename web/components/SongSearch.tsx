@@ -39,10 +39,10 @@ export function SongSearch({ gameId, inputId }: { gameId: number; inputId: strin
         button = <GuessButton gameId={gameId} guess={id} />;
     }
     return (
-        <div className="search_and_submit">
+        <div className="form_row">
             <div className="search">
                 <input
-                    className="search__input"
+                    className="input"
                     type="search"
                     placeholder="Title or artist..."
                     onChange={e => {

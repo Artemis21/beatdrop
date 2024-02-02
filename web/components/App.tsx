@@ -12,6 +12,7 @@ import { NewGame } from "./NewGame";
 import { ErrorPage } from "./Placeholder";
 import { Nav } from "./Nav";
 import { Info } from "./Info";
+import { User } from "./User";
 
 export function App() {
     const router = createBrowserRouter(
@@ -22,6 +23,7 @@ export function App() {
                     <Route path="/start" element={<NewGame />} />
                     <Route path="/games/:gameId" element={<Game />} />
                     <Route path="/info" element={<Info />} />
+                    <Route path="/user" element={<User />} />
                     <Route path="*" element={<ErrorPage notFound />} />
                 </Route>
             </Route>,
