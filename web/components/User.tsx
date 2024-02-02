@@ -1,5 +1,5 @@
 import { faTrash, faUser } from "@fortawesome/free-solid-svg-icons";
-import { useDeleteUser, useUpdateUser, useUser } from "../api";
+import { User, useDeleteUser, useUpdateUser, useUser } from "../api";
 import { Card } from "./Card";
 import { Error, Loading } from "./Placeholder";
 import { Scrollable } from "./Scrollable";
@@ -7,11 +7,7 @@ import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function User() {
-    const navigate = useNavigate();
     const { data, error } = useUser();
-    const { mutate: update, isLoading: updateIsLoading } = useUpdateUser();
-    const { mutate: delUser, isLoading: deleteIsLoading } = useDeleteUser();
-    const usernameInput = useRef<HTMLInputElement>(null);
     if (error) return <Error error={error} />;
     if (data === undefined) return <Loading />;
     return (
@@ -21,43 +17,57 @@ export function User() {
                     Your account (ID {data.id}) was created on{" "}
                     {new Date(data.createdAt).toLocaleDateString()}.
                 </Card>
-                <Card title="Change display name">
-                    <form className="form_row">
-                        <input
-                            type="text"
-                            className="input"
-                            defaultValue={data.displayName}
-                            ref={usernameInput}
-                        />
-                        <button
-                            type="submit"
-                            className="submit"
-                            onClick={() =>
-                                update({ displayName: usernameInput.current?.value })
-                            }
-                            disabled={updateIsLoading}
-                        >
-                            {updateIsLoading ? "..." : "Update"}
-                        </button>
-                    </form>
-                </Card>
-                <Card
-                    title={deleteIsLoading ? "Deleting..." : "Delete account"}
-                    icon={faTrash}
-                    onClick={async () => {
-                        if (
-                            !deleteIsLoading &&
-                            confirm("Are you sure you want to delete your account?")
-                        ) {
-                            await delUser(null);
-                            navigate("/");
-                        }
-                    }}
-                    bad
-                >
-                    This is irreversible! You will lose all your games and data.
-                </Card>
+                <UpdateUser current={data} />
+                <DeleteUser />
             </div>
         </Scrollable>
+    );
+}
+
+function UpdateUser({ current }: { current: User }) {
+    const { mutate, isLoading } = useUpdateUser();
+    const usernameInput = useRef<HTMLInputElement>(null);
+    return (
+        <Card title="Change display name">
+            <form className="form_row">
+                <input
+                    type="text"
+                    className="input"
+                    defaultValue={current.displayName}
+                    ref={usernameInput}
+                />
+                <button
+                    type="submit"
+                    className="submit"
+                    onClick={() => mutate({ displayName: usernameInput.current?.value })}
+                    disabled={isLoading}
+                >
+                    {isLoading ? "..." : "Update"}
+                </button>
+            </form>
+        </Card>
+    );
+}
+
+function DeleteUser() {
+    const { mutate, isLoading } = useDeleteUser();
+    const navigate = useNavigate();
+    return (
+        <Card
+            title={isLoading ? "Deleting..." : "Delete account"}
+            icon={faTrash}
+            onClick={async () => {
+                if (
+                    !isLoading &&
+                    confirm("Are you sure you want to delete your account?")
+                ) {
+                    await mutate(null);
+                    navigate("/");
+                }
+            }}
+            bad
+        >
+            This is irreversible! You will lose all your games and data.
+        </Card>
     );
 }
