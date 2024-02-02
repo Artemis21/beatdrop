@@ -3,6 +3,23 @@
     flex-direction: column
     gap: 1rem
 
+.card_stack--centred .card
+    align-items: center
+
+    // if there is no sub OR there is no thumb, centre the title
+    &:not(:has(.card__sub)), &:not(:has(.card__icon, .card__image))
+        .card__title
+            justify-self: center
+            text-align: center
+
+    // if there is only an icon and a title, centre them together
+    &:has(.card__icon):not(:has(.card__sub))
+        display: flex
+        justify-content: center
+
+        .card__icon
+            font-size: 2rem
+
 .card
     border: 0
     text-decoration: none
@@ -31,6 +48,19 @@
         &:has(.card__sub)
             grid-template-areas: "thumb title" "thumb sub"
 
+    // FIXME: no tag names
+    ol, p
+        &:first-child
+            margin-top: 0
+
+        &:last-child
+            margin-bottom: 0
+
+    ol, .fa-ul
+        display: flex
+        gap: 0.5rem
+        flex-direction: column
+
     // This becomes an inset border when .card--active is applied. It is defined
     // here to allow for transitions. We use a pseudo element to apply an inset
     // border rather than a standard outer border -- this reduces content shift
@@ -46,6 +76,22 @@
         border-radius: 1rem
         transition: border-width 50ms linear
         pointer-events: none
+
+.card--with-sub
+    grid-template-areas: "title" "sub"
+
+.card--with-thumb
+    grid-template-columns: 5rem 1fr
+    grid-template-areas: "thumb title"
+
+    &.card--with-sub
+        grid-template-areas: "thumb title" "thumb sub"
+
+.card--extended
+    padding: 2rem
+
+    .card__title
+        margin-bottom: 0.5rem
 
 .card--button
     cursor: pointer
@@ -73,9 +119,8 @@
 
 .card__icon
     grid-area: thumb
-    margin: auto
     font-size: 2.5rem
-    text-align: center
+    justify-self: center
 
 .card__image
     grid-area: thumb
@@ -102,3 +147,4 @@
 .card__sub
     grid-area: sub
     margin: 0
+    line-height: 1.5

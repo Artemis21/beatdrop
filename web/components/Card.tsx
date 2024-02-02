@@ -19,6 +19,7 @@ export function Card({
     good,
     bad,
     active,
+    extended,
 }: {
     title: ReactNode;
     children?: ReactNode;
@@ -29,12 +30,14 @@ export function Card({
     good?: boolean;
     bad?: boolean;
     active?: boolean;
+    extended?: boolean;
 }) {
     const inner = Inner({ icon, image, title, sub: children });
     const outerClass = classModifiers("card", {
         good,
         bad,
         active,
+        extended,
         button: link || onClick,
     });
     if (link && link.startsWith("/")) {
