@@ -37,7 +37,7 @@ export function User() {
                             }
                             disabled={updateIsLoading}
                         >
-                            { updateIsLoading ? "..." : "Update" }
+                            {updateIsLoading ? "..." : "Update"}
                         </button>
                     </form>
                 </Card>

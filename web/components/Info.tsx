@@ -2,7 +2,15 @@ import { useNavigate } from "react-router-dom";
 import { GameType } from "./GameType";
 import { Scrollable } from "./Scrollable";
 import { Card } from "./Card";
-import { faCrown, faForward, faLock, faMusic, faPlay, faRotateRight, faSearch } from "@fortawesome/free-solid-svg-icons";
+import {
+    faCrown,
+    faForward,
+    faLock,
+    faMusic,
+    faPlay,
+    faRotateRight,
+    faSearch,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export function Info() {
@@ -19,16 +27,20 @@ export function Info() {
                         </li>
                         <li>
                             <FontAwesomeIcon icon={faMusic} listItem />
-                            Listen to the music. Does it ring a bell?</li>
+                            Listen to the music. Does it ring a bell?
+                        </li>
                         <li>
                             <FontAwesomeIcon icon={faSearch} listItem />
-                            Start typing your guess, then pick a search result.</li>
+                            Start typing your guess, then pick a search result.
+                        </li>
                         <li>
                             <FontAwesomeIcon icon={faLock} listItem />
-                            Incorrect guesses let you hear more of the track.</li>
+                            Incorrect guesses let you hear more of the track.
+                        </li>
                         <li>
                             <FontAwesomeIcon icon={faForward} listItem />
-                            If you have no idea, you can skip your guess.</li>
+                            If you have no idea, you can skip your guess.
+                        </li>
                         <li>
                             <FontAwesomeIcon icon={faRotateRight} listItem />
                             Use the buttons at the bottom of the page to jump backwards
