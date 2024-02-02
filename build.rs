@@ -24,7 +24,7 @@ fn build_assets(dist: &std::path::Path) {
     }
     // Ensure parcel is installed
     std::process::Command::new("yarn")
-        .args(["--immutable"])
+        .args(["install", "--immutable"])
         .status()
         .expect("failed to run `yarn install`");
     // Build web assets
