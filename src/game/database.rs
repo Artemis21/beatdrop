@@ -125,7 +125,7 @@ impl Game {
             .fetch_optional(&mut *db)
             .await? else { return Ok(None) };
         let mut game = game.with_guesses(&mut *db).await?;
-        game.end_if_over(&mut *db).await?;
+        game.auto_update(&mut *db).await?;
         Ok(Some(game))
     }
 

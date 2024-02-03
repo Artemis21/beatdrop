@@ -50,12 +50,6 @@ const TIMED_UNLOCK_TIMES: [chrono::Duration; MAX_GUESSES] = [
     seconds(106),
 ];
 
-/// The total length of music played (for the final guess/game over screen).
-const FULL_CLIP_LENGTH: chrono::Duration = MUSIC_CLIP_LENGTHS[MAX_GUESSES - 1];
-
-/// How long a timed game lasts.
-const TIMED_GAME_LENGTH: chrono::Duration = TIMED_UNLOCK_TIMES[MAX_GUESSES - 1];
-
 /// The constant game settings (a type alias for convenience, since only one number
 /// of game is actually relevant).
 pub type Constants = GenericConstants<MAX_GUESSES>;
@@ -69,22 +63,36 @@ pub const CONSTANTS: Constants = Constants {
 /// Calculate the moment such that if a user started a timed game started before
 /// that moment, they would now have run out of time.
 pub fn timed_game_cutoff() -> DateTime<Utc> {
-    Utc::now() - super::logic::TIMED_GAME_LENGTH
+    Utc::now() - TIMED_UNLOCK_TIMES[MAX_GUESSES - 1]
 }
 
 impl Game {
     /// How much of the music should be available for the player to listen to.
     pub fn time_unlocked(&self) -> chrono::Duration {
+        MUSIC_CLIP_LENGTHS[self.chunks_unlocked()]
+    }
+
+    /// How many "chunks" of music have been unlocked.
+    ///
+    /// This is theoretically the same as the number of guesses. However, in
+    /// timed games, guesses can "time out" (get skipped automatically because
+    /// the time allowed for them has run out). Timed out guesses should count
+    /// towards the number of chunks unlocked, but may not yet be materialised
+    /// in the database.
+    ///
+    /// Also note that this starts from zero, even though some music is
+    /// available from the start of the game. In that respect, the return value
+    /// is actually one less than the number of chunks of music available.
+    pub fn chunks_unlocked(&self) -> usize {
         if self.is_over() {
-            return FULL_CLIP_LENGTH;
+            return MAX_GUESSES - 1;  // the final guess doesn't unlock a new chunk
         }
-        let idx = if self.is_timed {
+        if self.is_timed {
             let elapsed = Utc::now() - self.started_at;
             TIMED_UNLOCK_TIMES.iter().filter(|&&t| t < elapsed).count()
         } else {
             self.guesses.len()
-        };
-        MUSIC_CLIP_LENGTHS[idx]
+        }
     }
 
     /// Whether the game is over.
@@ -96,14 +104,18 @@ impl Game {
         self.won.is_some()
     }
 
-    /// End the game if it is over.
-    pub async fn end_if_over(&mut self, db: &mut DbConn) -> Result<()> {
+    /// Update any game state that depends on the current time.
+    pub async fn auto_update(&mut self, db: &mut DbConn) -> Result<()> {
         if self.is_over() {
             return Ok(());
         }
+        let timed_out_guesses = self.guesses.len() - self.chunks_unlocked();
+        for _ in 0..timed_out_guesses {
+            self.new_guess(db, None).await?;
+        }
         if self.is_guessed() {
             self.set_won(db, true).await?;
-        } else if self.is_out_of_time() || self.is_out_of_guesses() {
+        } else if self.is_out_of_guesses() {
             self.set_won(db, false).await?;
         }
         Ok(())
@@ -114,11 +126,6 @@ impl Game {
         self.guesses
             .iter()
             .any(|guess| *guess.track_id == Some(self.track_id))
-    }
-
-    /// Whether the player has run out of time.
-    fn is_out_of_time(&self) -> bool {
-        self.is_timed && self.started_at + TIMED_GAME_LENGTH < Utc::now()
     }
 
     /// Whether the player has run out of guesses.
