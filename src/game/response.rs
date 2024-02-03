@@ -9,12 +9,21 @@ impl Game {
     /// Convert a game into a response, leaving out information that the user
     /// should not be able to see.
     pub async fn into_response(self, db: &mut DbConn) -> Result<Response> {
-        let track = match &self.won {
-            Some(_) => Some(track::Meta::get(db, self.track_id).await?),
-            None => None,
-        };
         let genre = match *self.genre_id {
             Some(genre_id) => Some(track::genre(db, genre_id).await?),
+            None => None,
+        };
+        let id = self.id;
+        let started_at = self.started_at;
+        let is_daily = self.is_daily;
+        let is_timed = self.is_timed;
+        let won = self.won;
+        let track = match &self.won {
+            Some(_) => Some(if let Some(track) = self.track_cache {
+                track
+            } else {
+                track::Meta::get(db, self.track_id).await?
+            }),
             None => None,
         };
         let mut guesses = Vec::with_capacity(self.guesses.len());
@@ -29,12 +38,12 @@ impl Game {
             });
         }
         Ok(Response {
-            id: self.id,
-            started_at: self.started_at,
-            is_daily: self.is_daily,
-            is_timed: self.is_timed,
+            id,
+            started_at,
+            is_daily,
+            is_timed,
             genre,
-            won: self.won,
+            won,
             guesses,
             track,
             constants: CONSTANTS,

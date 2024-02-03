@@ -8,13 +8,13 @@ use serde::Serialize;
 #[serde(rename_all = "camelCase")]
 pub struct Meta {
     /// The track's Deezer ID
-    id: deezer::Id,
+    pub id: deezer::Id,
     /// Track title
-    title: String,
+    pub title: String,
     /// Link to the track on Deezer
     link: String,
     /// Artist name
-    artist_name: String,
+    pub artist_name: String,
     /// Album title
     album_title: String,
     /// URL of an image of the album cover art
@@ -22,8 +22,8 @@ pub struct Meta {
 }
 
 impl Meta {
-    /// Get track metadata from the database by ID.
-    pub async fn get(db: &mut DbConn, id: deezer::Id) -> Result<Self> {
+    /// Get track metadata from the database by ID, if it exists.
+    pub async fn try_get(db: &mut DbConn, id: deezer::Id) -> Result<Option<Self>> {
         let track = sqlx::query_as!(
             Self,
             "SELECT
@@ -39,10 +39,17 @@ impl Meta {
             WHERE track.id = $1",
             i32::from(id),
         )
-        .fetch_one(db)
+        .fetch_optional(db)
         .await
         .wrap_err("error querying track metadata")?;
         Ok(track)
+    }
+
+    /// Get track metadata from the database by ID, or return an error if the track does not exist.
+    pub async fn get(db: &mut DbConn, id: deezer::Id) -> Result<Self> {
+        Self::try_get(db, id)
+            .await?
+            .ok_or_else(|| eyre::eyre!("no such track: {}", id))
     }
 }
 

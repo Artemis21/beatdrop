@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 
 use super::logic::timed_game_cutoff;
-use crate::{deezer, DbConn, User};
+use crate::{deezer, track, DbConn, User};
 use eyre::{Context, Result};
 
 /// A model directly representing a row in the `game` table.
@@ -47,6 +47,9 @@ pub struct Game {
     game: Row,
     /// The guesses made in this game.
     pub guesses: Vec<Guess>,
+    /// Track metadata for the track being guessed. This is just a cache and
+    /// will be `None` if it hasn't been fetched from the database yet.
+    pub track_cache: Option<track::Meta>,
 }
 
 impl std::ops::Deref for Game {
@@ -79,6 +82,7 @@ impl Row {
         Ok(Game {
             game: self,
             guesses,
+            track_cache: None,
         })
     }
 }
@@ -111,6 +115,7 @@ impl Game {
         Ok(Self {
             game,
             guesses: Vec::new(),
+            track_cache: None,
         })
     }
 
@@ -170,6 +175,14 @@ impl Game {
         .await
         .wrap_err("error ending timed out games")?;
         Ok(())
+    }
+
+    /// Get the track metadata, caching the result.
+    pub async fn track(&mut self, db: &mut DbConn) -> Result<&track::Meta> {
+        if self.track_cache.is_none() {
+            self.track_cache = Some(track::Meta::get(&mut *db, self.track_id).await?);
+        }
+        Ok(self.track_cache.as_ref().unwrap())
     }
 }
 

@@ -127,14 +127,21 @@ async fn new_guess(
     if game.is_over() {
         return Err(ApiError::conflict("game is already over"));
     }
-    if let Some(track_id) = body.track_id {
-        if !track::exists(&mut tx, track_id).await? {
-            return Err(ApiError::not_found("given track ID does not exist"));
-        }
-    }
-    // TODO: if the guessed song is very similar in title & artist to the answer,
-    //       change it to the answer (avoids irritations with variants)
-    game.new_guess(&mut tx, body.track_id).await?;
+    let track_id = match body.track_id {
+        Some(track_id) => match track::get_or_fetch(&mut tx, track_id).await? {
+            None => return Err(ApiError::not_found("given track ID does not exist")),
+            Some(guess) => {
+                let answer = game.track(&mut tx).await?;
+                if track::similar(&guess.title, &answer.title) {
+                    Some(answer.id)
+                } else {
+                    Some(guess.id)
+                }
+            }
+        },
+        None => None,
+    };
+    game.new_guess(&mut tx, track_id).await?;
     game.end_if_over(&mut tx).await?;
     let game = game.into_response(&mut tx).await?;
     tx.commit().await?;

@@ -8,10 +8,12 @@ mod meta;
 mod music;
 pub mod pick;
 mod routes;
+mod similar;
 
 pub use meta::Meta;
 pub use music::init;
 pub use routes::routes;
+pub use similar::similar;
 
 /// Get a genre object from the database by ID.
 pub async fn genre(db: &mut DbConn, id: deezer::Id) -> Result<deezer::Genre> {
@@ -45,24 +47,18 @@ pub async fn clip(
         .wrap_err("error clipping music")
 }
 
-/// Check if the given track exists, and if it is, make sure it is stored in the database.
-pub async fn exists(db: &mut DbConn, id: deezer::Id) -> Result<bool> {
-    let exists_in_database =
-        sqlx::query_scalar!("SELECT 1 FROM track WHERE track.id = $1", i32::from(id))
-            .fetch_optional(&mut *db)
-            .await
-            .wrap_err("error checking if track exists")?
-            .is_some();
-    if exists_in_database {
-        return Ok(true);
+/// Get the given track from the database, or fetch it from Deezer if it's not there.
+pub async fn get_or_fetch(db: &mut DbConn, id: deezer::Id) -> Result<Option<Meta>> {
+    if let Some(track) = Meta::try_get(db, id).await? {
+        return Ok(Some(track));
     }
     match deezer::track(id).await? {
         Some(track) => {
             insert::track_with_refs(db, &track)
                 .await
                 .wrap_err("inserting track into database with references")?;
-            Ok(true)
+            Ok(Some(track.into()))
         }
-        None => Ok(false),
+        None => Ok(None),
     }
 }
