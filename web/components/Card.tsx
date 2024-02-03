@@ -74,6 +74,11 @@ function Inner({
     title?: ReactNode;
     sub?: ReactNode;
 }) {
+    if (typeof title === "string") {
+        title = <p className="card__title">{title}</p>;
+    } else {
+        title = <div className="card__title">{title}</div>;
+    }
     return (
         <>
             {icon && <FontAwesomeIcon icon={icon} className="card__icon" />}
@@ -82,7 +87,7 @@ function Inner({
                     <img src={image.src} alt={image.alt} />
                 </div>
             )}
-            <p className="card__title">{title}</p>
+            {title}
             {sub && <div className="card__sub">{sub}</div>}
         </>
     );
