@@ -2,9 +2,18 @@ import { useEffect, useState } from "react";
 import { Track, searchTracks, useNewGuess } from "../api";
 import { useThrottled, classModifiers } from "../utils";
 
-export function SongSearch({ gameId, inputId }: { gameId: number; inputId: string }) {
-    const [q, setQ] = useState("");
-    const debouncedQ = useThrottled(q, 500);
+export function SongSearch({
+    gameId,
+    inputId,
+    query,
+    setQuery,
+}: {
+    gameId: number;
+    inputId: string;
+    query: string;
+    setQuery: (q: string) => void;
+}) {
+    const debouncedQ = useThrottled(query, 500);
     const [id, setId] = useState<number | null>(null);
     const [active, setActive] = useState(false);
     const [tracks, setTracks] = useState<Track[] | undefined>(undefined);
@@ -21,22 +30,26 @@ export function SongSearch({ gameId, inputId }: { gameId: number; inputId: strin
         }
     }, [debouncedQ, id]);
     let results;
-    if (!active || q === "" || id !== null) {
+    if (!active || query === "" || id !== null) {
         results = null;
     } else if (error) {
         results = <SearchResultsPlaceholder message={error.toString()} />;
-    } else if (tracks === undefined || (tracks.length === 0 && q !== debouncedQ)) {
+    } else if (tracks === undefined || (tracks.length === 0 && query !== debouncedQ)) {
         results = <SearchResultsPlaceholder message="Loading..." />;
     } else if (tracks.length === 0) {
         results = <SearchResultsPlaceholder message="No results found." />;
     } else {
-        results = <SearchResults tracks={tracks} setQ={setQ} setId={setId} />;
+        results = <SearchResults tracks={tracks} setQ={setQuery} setId={setId} />;
     }
     let button;
     if (id === null) {
-        button = <GuessButton gameId={gameId} guess={null} />;
+        button = (
+            <GuessButton gameId={gameId} guess={null} afterSubmit={() => setQuery("")} />
+        );
     } else {
-        button = <GuessButton gameId={gameId} guess={id} />;
+        button = (
+            <GuessButton gameId={gameId} guess={id} afterSubmit={() => setQuery("")} />
+        );
     }
     return (
         <div className="form_row">
@@ -47,11 +60,11 @@ export function SongSearch({ gameId, inputId }: { gameId: number; inputId: strin
                     placeholder="Title or artist..."
                     onChange={e => {
                         setId(null);
-                        setQ(e.target.value);
+                        setQuery(e.target.value);
                     }}
                     onFocus={() => setActive(true)}
                     onBlur={() => setActive(false)}
-                    value={q}
+                    value={query}
                     id={inputId}
                 />
                 {results}
@@ -100,14 +113,25 @@ function SearchResultsPlaceholder({ message }: { message: string }) {
     );
 }
 
-function GuessButton({ gameId, guess }: { gameId: number; guess: number | null }) {
+function GuessButton({
+    gameId,
+    guess,
+    afterSubmit,
+}: {
+    gameId: number;
+    guess: number | null;
+    afterSubmit: () => void;
+}) {
     const { mutate, isLoading } = useNewGuess();
     const className = classModifiers("submit", { secondary: guess === null });
     if (isLoading) {
         return <button className={className}>...</button>;
     }
     return (
-        <button className={className} onClick={() => mutate({ gameId, trackId: guess })}>
+        <button
+            className={className}
+            onClick={() => mutate({ gameId, trackId: guess }).then(afterSubmit)}
+        >
             {guess === null ? "Skip" : "Guess"}
         </button>
     );

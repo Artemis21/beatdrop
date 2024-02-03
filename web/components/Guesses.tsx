@@ -2,7 +2,15 @@ import { Game } from "../api";
 import { WrongGuess, SkippedGuess, EmptyGuess, NewGuess } from "./Guess";
 import { Scrollable } from "./Scrollable";
 
-export function Guesses({ game: { id, guesses, constants } }: { game: Game }) {
+export function Guesses({
+    game: { id, guesses, constants },
+    guessQuery,
+    setGuessQuery,
+}: {
+    game: Game;
+    guessQuery: string;
+    setGuessQuery: (q: string) => void;
+}) {
     const guessEls = [];
     for (let n = 0; n < constants.maxGuesses; n++) {
         if (n < guesses.length) {
@@ -13,7 +21,14 @@ export function Guesses({ game: { id, guesses, constants } }: { game: Game }) {
                 guessEls.push(<SkippedGuess key={n} />);
             }
         } else if (n === guesses.length) {
-            guessEls.push(<NewGuess key={n} gameId={id} />);
+            guessEls.push(
+                <NewGuess
+                    key={n}
+                    gameId={id}
+                    guessQuery={guessQuery}
+                    setGuessQuery={setGuessQuery}
+                />,
+            );
         } else {
             guessEls.push(<EmptyGuess key={n} />);
         }

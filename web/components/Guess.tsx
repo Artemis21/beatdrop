@@ -20,8 +20,23 @@ export function EmptyGuess() {
     );
 }
 
-export function NewGuess({ gameId }: { gameId: number }) {
-    const search = <SongSearch gameId={gameId} inputId="new_guess" />;
+export function NewGuess({
+    gameId,
+    guessQuery,
+    setGuessQuery,
+}: {
+    gameId: number;
+    guessQuery: string;
+    setGuessQuery: (q: string) => void;
+}) {
+    const search = (
+        <SongSearch
+            gameId={gameId}
+            inputId="new_guess"
+            query={guessQuery}
+            setQuery={setGuessQuery}
+        />
+    );
     return (
         <Card title={search} active>
             <label htmlFor="new_guess" className="search_label">
