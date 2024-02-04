@@ -2,6 +2,7 @@
 use crate::{DbConn, Game};
 use chrono::{DateTime, Utc};
 use eyre::Result;
+use serde::Serialize;
 
 /// Utility to construct a `chrono::Duration` from a number of seconds in a constant context.
 const fn seconds(n: i64) -> chrono::Duration {
@@ -15,9 +16,8 @@ const fn seconds(n: i64) -> chrono::Duration {
 pub struct GenericConstants<const MAX_GUESSES: usize> {
     /// How long each clip is (from the start of the track).
     pub music_clip_lengths: [chrono::Duration; MAX_GUESSES],
-    /// The durations into the timed game at which each clip unlocks.
-    /// The final element is the time at which the game ends.
-    pub timed_unlock_times: [chrono::Duration; MAX_GUESSES],
+    /// The maximum amount of time allotted to each guess.
+    pub timed_guess_lengths: [chrono::Duration; MAX_GUESSES],
 }
 
 /// The total allowed guesses in a game.
@@ -32,23 +32,25 @@ const MUSIC_CLIP_LENGTHS: [chrono::Duration; MAX_GUESSES] = [
     seconds(16),
     seconds(30),
 ];
-/// The times at which each clip unlocks.
-const TIMED_UNLOCK_TIMES: [chrono::Duration; MAX_GUESSES] = [
+/// The duration each guess is given in a timed game.
+const TIMED_GUESS_LENGTHS: [chrono::Duration; MAX_GUESSES] = [
     // 1s clip + 5s
     seconds(6),
     // 2s clip + 5s
-    seconds(13),
+    seconds(7),
     // 4s clip + 5s
-    seconds(22),
+    seconds(9),
     // 7s clip + 5s
-    seconds(34),
+    seconds(12),
     // 11s clip + 5s
-    seconds(50),
+    seconds(16),
     // 16s clip + 5s
-    seconds(71),
+    seconds(21),
     // 30s clip + 5s
-    seconds(106),
+    seconds(35),
 ];
+/// The sum of every guess length, the maximum time a timed game can last.
+const MAX_TIMED_GAME_LENGTH: chrono::Duration = seconds(106);
 
 /// The constant game settings (a type alias for convenience, since only one number
 /// of game is actually relevant).
@@ -57,13 +59,25 @@ pub type Constants = GenericConstants<MAX_GUESSES>;
 /// The specific game constants.
 pub const CONSTANTS: Constants = Constants {
     music_clip_lengths: MUSIC_CLIP_LENGTHS,
-    timed_unlock_times: TIMED_UNLOCK_TIMES,
+    timed_guess_lengths: TIMED_GUESS_LENGTHS,
 };
 
 /// Calculate the moment such that if a user started a timed game started before
 /// that moment, they would now have run out of time.
 pub fn timed_game_cutoff() -> DateTime<Utc> {
-    Utc::now() - TIMED_UNLOCK_TIMES[MAX_GUESSES - 1]
+    Utc::now() - MAX_TIMED_GAME_LENGTH
+}
+
+/// A type representing the current guess state in a timed game.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CurrentGuess {
+    /// Zero-indexed number of the current guess.
+    number: usize,
+    /// The time the current guess started at.
+    started_at: DateTime<Utc>,
+    /// The maximum number of milliseconds the guess may last.
+    length_millis: u64,
 }
 
 impl Game {
@@ -85,13 +99,38 @@ impl Game {
     /// is actually one less than the number of chunks of music available.
     pub fn chunks_unlocked(&self) -> usize {
         if self.is_over() {
-            return MAX_GUESSES - 1;  // the final guess doesn't unlock a new chunk
+            return MAX_GUESSES - 1; // the final guess doesn't unlock a new chunk
         }
         if self.is_timed {
-            let elapsed = Utc::now() - self.started_at;
-            TIMED_UNLOCK_TIMES.iter().filter(|&&t| t < elapsed).count()
+            self.current_guess().number.min(MAX_GUESSES - 1)
         } else {
             self.guesses.len()
+        }
+    }
+
+    /// Get the current timed guess state (result is meaningless in a non-timed game).
+    ///
+    /// If the game is over, only the `number` field is meaningful (it will be [`MAX_GUESSES`]).
+    pub fn current_guess(&self) -> CurrentGuess {
+        let mut started_at = self
+            .guesses
+            .last()
+            .map_or(self.started_at, |g| g.guessed_at);
+        let mut number = self.guesses.len();
+        let mut length = CONSTANTS.timed_guess_lengths[number];
+        while Utc::now() - started_at > length {
+            started_at += length;
+            number += 1;
+            if number == MAX_GUESSES {
+                break;
+            }
+            length = CONSTANTS.timed_guess_lengths[number];
+        }
+        CurrentGuess {
+            number,
+            started_at,
+            length_millis: u64::try_from(length.num_milliseconds())
+                .expect("guess length is positive"),
         }
     }
 
@@ -109,9 +148,14 @@ impl Game {
         if self.is_over() {
             return Ok(());
         }
-        let timed_out_guesses = self.guesses.len() - self.chunks_unlocked();
-        for _ in 0..timed_out_guesses {
-            self.new_guess(db, None).await?;
+        if self.is_timed {
+            let timed_out_guesses = self
+                .current_guess()
+                .number
+                .saturating_sub(self.guesses.len());
+            for _ in 0..timed_out_guesses {
+                self.new_guess(db, None).await?;
+            }
         }
         if self.is_guessed() {
             self.set_won(db, true).await?;

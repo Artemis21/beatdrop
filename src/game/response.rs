@@ -1,5 +1,5 @@
 //! The game response type, used for serialising games to JSON.
-use super::logic::{Constants, GenericConstants, CONSTANTS};
+use super::logic::{Constants, CurrentGuess, GenericConstants, CONSTANTS};
 use crate::{deezer, track, DbConn, Game};
 use chrono::{DateTime, Utc};
 use eyre::Result;
@@ -12,6 +12,11 @@ impl Game {
         let genre = match *self.genre_id {
             Some(genre_id) => Some(track::genre(db, genre_id).await?),
             None => None,
+        };
+        let timed_guess = if self.is_timed && self.won.is_none() {
+            Some(self.current_guess())
+        } else {
+            None
         };
         let id = self.id;
         let started_at = self.started_at;
@@ -45,6 +50,7 @@ impl Game {
             genre,
             won,
             guesses,
+            timed_guess,
             track,
             constants: CONSTANTS,
         })
@@ -69,6 +75,8 @@ pub struct Response {
     genre: Option<deezer::Genre>,
     /// The guesses (or skips) made so far in this game.
     guesses: Vec<GuessResponse>,
+    /// Timing information on the current guess, if this is an ongoing timed game.
+    timed_guess: Option<CurrentGuess>,
     /// If the game has ended, whether the user won.
     won: Option<bool>,
     /// If the game has ended, the track that was being guessed.
@@ -95,8 +103,8 @@ struct ConstantsSerde {
     max_guesses: usize,
     /// The lengths of the music clips, in milliseconds.
     music_clip_millis: Vec<u64>,
-    /// The times at which the music clips are unlocked, in milliseconds.
-    timed_unlock_millis: Vec<u64>,
+    /// The maximum amount of time allotted to each guess, in milliseconds.
+    timed_guess_millis: Vec<u64>,
 }
 
 impl<const N: usize> From<&GenericConstants<N>> for ConstantsSerde {
@@ -108,17 +116,17 @@ impl<const N: usize> From<&GenericConstants<N>> for ConstantsSerde {
                 u64::try_from(duration.num_milliseconds()).expect("clip lengths to be positive")
             })
             .collect();
-        let timed_unlock_millis = vals
-            .timed_unlock_times
+        let timed_guess_millis = vals
+            .timed_guess_lengths
             .iter()
             .map(|duration| {
-                u64::try_from(duration.num_milliseconds()).expect("unlock times to be positive")
+                u64::try_from(duration.num_milliseconds()).expect("guess lengths to be positive")
             })
             .collect();
         Self {
             max_guesses: N,
             music_clip_millis,
-            timed_unlock_millis,
+            timed_guess_millis,
         }
     }
 }

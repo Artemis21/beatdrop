@@ -29,6 +29,7 @@ pub async fn spawn(rocket: rocket::Rocket<rocket::Build>) -> rocket::fairing::Re
         .run(|| run_background_task("end timed-out games", end_timed_out_games));
     rocket::tokio::task::spawn(async move {
         // Check for new tasks once a minute.
+        // FIXME: these tasks don't appear to be actually running
         scheduler.run_pending().await;
         rocket::tokio::time::sleep(std::time::Duration::from_secs(60)).await;
     });

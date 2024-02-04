@@ -308,6 +308,7 @@ export type Game = {
     isTimed: boolean;
     genre: Genre | null;
     guesses: Guess[];
+    timedGuess: GuessTiming | null;
     won: boolean | null;
     track: Track | null;
     constants: GameConstants;
@@ -324,6 +325,13 @@ export type Genre = {
 export type Guess = {
     track: Track;
     guessedAt: Date;
+};
+
+/** Timing information on the current guess, as returned by the API on incomplete timed games. */
+export type GuessTiming = {
+    number: number;
+    startedAt: Date;
+    lengthMillis: number;
 };
 
 /** A track, as returned by the API. */
