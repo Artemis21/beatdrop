@@ -32,3 +32,13 @@ export function classModifiers(base: string, modifiers: Record<string, unknown>)
     }
     return className;
 }
+
+/** Get the current time at `step` millisecond intervals. */
+export function useTimer(step: number): number {
+    const [time, setTime] = useState(Date.now());
+    useEffect(() => {
+        const interval = setInterval(() => setTime(Date.now()), step);
+        return () => clearInterval(interval);
+    }, [step]);
+    return time;
+}

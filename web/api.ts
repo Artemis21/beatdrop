@@ -148,6 +148,11 @@ export function useGame(id: number): Resource<Game> {
     return useSWR<Game, object, Key>(["/games/:id", id], fetch);
 }
 
+export function useInvalidateGame(id: number) {
+    const { mutate } = useSWRConfig();
+    return () => mutate(["/games/:id", id]);
+}
+
 export function useRecentGames(): Resource<RecentGames> {
     const fetch = async (path: "/games") => {
         return await (await endpoint("GET", path)).json();
@@ -303,7 +308,7 @@ export type RecentGames = {
 /** The current game, as returned by the API. */
 export type Game = {
     id: number;
-    startedAt: Date;
+    startedAt: string;
     isDaily: boolean;
     isTimed: boolean;
     genre: Genre | null;
@@ -324,13 +329,13 @@ export type Genre = {
 /** A guess within a game, as returned by the API. */
 export type Guess = {
     track: Track;
-    guessedAt: Date;
+    guessedAt: string;
 };
 
 /** Timing information on the current guess, as returned by the API on incomplete timed games. */
 export type GuessTiming = {
     number: number;
-    startedAt: Date;
+    startedAt: string;
     lengthMillis: number;
 };
 

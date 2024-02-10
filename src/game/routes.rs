@@ -141,7 +141,7 @@ async fn new_guess(
         },
         None => None,
     };
-    game.new_guess(&mut tx, track_id).await?;
+    game.new_guess(&mut tx, track_id, None).await?;
     game.auto_update(&mut tx).await?;
     let game = game.into_response(&mut tx).await?;
     tx.commit().await?;

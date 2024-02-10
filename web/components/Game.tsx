@@ -7,7 +7,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 
 export function Game() {
-    // TODO: implement timed games
     const { gameId } = useParams();
     const { data, error } = useGame(Number(gameId));
     const navigate = useNavigate();

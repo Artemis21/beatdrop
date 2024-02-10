@@ -44,12 +44,12 @@ async fn run_background_task<O: Future<Output = Result<()>> + Send, F: FnMut() -
     let future = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(task)) {
         Ok(future) => future,
         Err(panic) => {
-            eprintln!("panic in background task '{}': {:?}", name, panic);
+            eprintln!("panic in background task '{name}': {panic:?}");
             return;
         }
     };
     if let Err(e) = future.await {
-        eprintln!("error in background task '{}': {:?}", name, e);
+        eprintln!("error in background task '{name}': {e:?}");
     }
 }
 

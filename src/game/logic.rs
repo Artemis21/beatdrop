@@ -112,20 +112,12 @@ impl Game {
     ///
     /// If the game is over, only the `number` field is meaningful (it will be [`MAX_GUESSES`]).
     pub fn current_guess(&self) -> CurrentGuess {
-        let mut started_at = self
+        let started_at = self
             .guesses
             .last()
             .map_or(self.started_at, |g| g.guessed_at);
-        let mut number = self.guesses.len();
-        let mut length = CONSTANTS.timed_guess_lengths[number];
-        while Utc::now() - started_at > length {
-            started_at += length;
-            number += 1;
-            if number == MAX_GUESSES {
-                break;
-            }
-            length = CONSTANTS.timed_guess_lengths[number];
-        }
+        let number = self.guesses.len();
+        let length = CONSTANTS.timed_guess_lengths[self.guesses.len()];
         CurrentGuess {
             number,
             started_at,
@@ -148,13 +140,20 @@ impl Game {
         if self.is_over() {
             return Ok(());
         }
-        if self.is_timed {
-            let timed_out_guesses = self
-                .current_guess()
-                .number
-                .saturating_sub(self.guesses.len());
-            for _ in 0..timed_out_guesses {
-                self.new_guess(db, None).await?;
+        if self.is_timed && !self.is_out_of_guesses() {
+            let mut last_guess_at = self
+                .guesses
+                .last()
+                .map_or(self.started_at, |g| g.guessed_at);
+            let mut current_length = CONSTANTS.timed_guess_lengths[self.guesses.len()];
+            let now = Utc::now();
+            while now - last_guess_at > current_length {
+                last_guess_at += current_length;
+                self.new_guess(db, None, Some(last_guess_at)).await?;
+                if self.is_out_of_guesses() {
+                    break;
+                }
+                current_length = CONSTANTS.timed_guess_lengths[self.guesses.len()];
             }
         }
         if self.is_guessed() {

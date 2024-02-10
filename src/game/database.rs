@@ -44,7 +44,7 @@ pub struct Guess {
 /// A game, including all guesses made.
 pub struct Game {
     /// The game row.
-    game: Row,
+    row: Row,
     /// The guesses made in this game.
     pub guesses: Vec<Guess>,
     /// Track metadata for the track being guessed. This is just a cache and
@@ -56,13 +56,13 @@ impl std::ops::Deref for Game {
     type Target = Row;
 
     fn deref(&self) -> &Self::Target {
-        &self.game
+        &self.row
     }
 }
 
 impl std::ops::DerefMut for Game {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.game
+        &mut self.row
     }
 }
 
@@ -80,7 +80,7 @@ impl Row {
         .await
         .wrap_err("error querying game guesses")?;
         Ok(Game {
-            game: self,
+            row: self,
             guesses,
             track_cache: None,
         })
@@ -113,7 +113,7 @@ impl Game {
         .fetch_one(db)
         .await?;
         Ok(Self {
-            game,
+            row: game,
             guesses: Vec::new(),
             track_cache: None,
         })
@@ -123,7 +123,10 @@ impl Game {
     pub async fn get(db: &mut DbConn, id: i32) -> Result<Option<Self>> {
         let Some(game) = sqlx::query_as!(Row, "SELECT * FROM game WHERE id = $1 FOR UPDATE", id)
             .fetch_optional(&mut *db)
-            .await? else { return Ok(None) };
+            .await?
+        else {
+            return Ok(None);
+        };
         let mut game = game.with_guesses(&mut *db).await?;
         game.auto_update(&mut *db).await?;
         Ok(Some(game))
@@ -131,16 +134,23 @@ impl Game {
 
     /// Submit a new guess for this game.
     ///
-    /// The guess is not validated in any way.
-    pub async fn new_guess(&mut self, db: &mut DbConn, track_id: Option<deezer::Id>) -> Result<()> {
+    /// The guess is not validated in any way. `guessed_at` defaults to the current time.
+    pub async fn new_guess(
+        &mut self,
+        db: &mut DbConn,
+        track_id: Option<deezer::Id>,
+        guessed_at: Option<DateTime<Utc>>,
+    ) -> Result<()> {
+        let guessed_at = guessed_at.unwrap_or_else(Utc::now);
         let guess = sqlx::query_as!(
             Guess,
-            "INSERT INTO game_guess (game_id, track_id, guess_number)
-            VALUES ($1, $2, $3)
+            "INSERT INTO game_guess (game_id, track_id, guess_number, guessed_at)
+            VALUES ($1, $2, $3, $4)
             RETURNING track_id, guessed_at",
             self.id,
             track_id.map(i32::from),
             i32::try_from(self.guesses.len()).expect("guess count to fit in i32"),
+            guessed_at,
         )
         .fetch_one(db)
         .await

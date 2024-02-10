@@ -70,7 +70,7 @@ fn blocking_save_track(path: std::path::PathBuf, mp3_data: &[u8]) -> Result<()> 
 /// Download a track from Deezer and save it to the music cache.
 async fn download_track(config: &Config, track_id: u32, preview: &str) -> Result<()> {
     let data = deezer::track_preview(preview).await?;
-    let path = config.music_dir.join(format!("{}.mp3", track_id));
+    let path = config.music_dir.join(format!("{track_id}.mp3"));
     task::spawn_blocking(move || blocking_save_track(path, &data)).await?
 }
 
@@ -79,7 +79,7 @@ async fn ensure_cached(track_id: u32, preview: &str) -> Result<std::path::PathBu
     let config = CONFIG
         .get()
         .expect("music system used before initialisation");
-    let path = config.music_dir.join(format!("{}.mp3", track_id));
+    let path = config.music_dir.join(format!("{track_id}.mp3"));
     if !fs::try_exists(&path)
         .await
         .wrap_err("error checking if a track is cached")?
@@ -110,7 +110,10 @@ fn blocking_clip_track(path: std::path::PathBuf, time: Range<chrono::Duration>) 
             .samples::<i16>()
             .next()
             .transpose()
-            .wrap_err("could not read sample from track")? else { break };
+            .wrap_err("could not read sample from track")?
+        else {
+            break;
+        };
         let right = reader
             .samples::<i16>()
             .next()

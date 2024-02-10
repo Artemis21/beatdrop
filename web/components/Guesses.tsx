@@ -3,7 +3,7 @@ import { WrongGuess, SkippedGuess, EmptyGuess, NewGuess } from "./Guess";
 import { Scrollable } from "./Scrollable";
 
 export function Guesses({
-    game: { id, guesses, constants },
+    game: { id, guesses, timedGuess, constants },
     guessQuery,
     setGuessQuery,
 }: {
@@ -25,6 +25,7 @@ export function Guesses({
                 <NewGuess
                     key={n}
                     gameId={id}
+                    timedGuess={timedGuess}
                     guessQuery={guessQuery}
                     setGuessQuery={setGuessQuery}
                 />,

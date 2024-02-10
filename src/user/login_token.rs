@@ -37,7 +37,9 @@ impl Secret {
 
     /// Parse a login token into a user ID and secret.
     fn from_token(token: &str) -> Option<(i32, Self)> {
-        let Ok(login_bytes) = URL_SAFE_NO_PAD.decode(token) else { return None; };
+        let Ok(login_bytes) = URL_SAFE_NO_PAD.decode(token) else {
+            return None;
+        };
         if login_bytes.len() != 32 {
             return None;
         }

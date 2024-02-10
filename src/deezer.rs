@@ -17,7 +17,7 @@ lazy_static! {
 /// Fetch the "chart" (a list of popular tracks) for a given genre.
 /// The genre with ID 0 is "all genres".
 pub async fn chart(genre_id: Id) -> Result<Vec<Track>> {
-    let url = format!("{API_URL}/chart/{id}/tracks", id = genre_id);
+    let url = format!("{API_URL}/chart/{genre_id}/tracks");
     let data: DataWrap<_> = CLIENT
         .get(&url)
         .send()
@@ -33,7 +33,7 @@ pub async fn chart(genre_id: Id) -> Result<Vec<Track>> {
 /// There does not seem to be a way to get a list of all genres, short of enumerating
 /// all possible genre IDs.
 pub async fn genres() -> Result<Vec<Genre>> {
-    let url = format!("{API_URL}/genre", API_URL = API_URL);
+    let url = format!("{API_URL}/genre");
     let data: DataWrap<_> = CLIENT
         .get(&url)
         .send()
@@ -52,7 +52,7 @@ pub async fn genres() -> Result<Vec<Genre>> {
 /// Returns an error if the album does not exist, or if the API request fails
 /// for another reason.
 pub async fn album(album_id: Id) -> Result<Album> {
-    let url = format!("{API_URL}/album/{id}", id = album_id);
+    let url = format!("{API_URL}/album/{album_id}");
     let data = CLIENT
         .get(&url)
         .send()

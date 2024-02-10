@@ -16,6 +16,7 @@ export function Card({
     image,
     icon,
     link,
+    progress,
     good,
     bad,
     active,
@@ -27,12 +28,13 @@ export function Card({
     image?: ImageDef;
     icon?: IconDefinition;
     link?: string;
+    progress?: number;
     good?: boolean;
     bad?: boolean;
     active?: boolean;
     extended?: boolean;
 }) {
-    const inner = Inner({ icon, image, title, sub: children });
+    const inner = Inner({ icon, image, title, progress, sub: children });
     const outerClass = classModifiers("card", {
         good,
         bad,
@@ -67,11 +69,13 @@ function Inner({
     icon,
     image,
     title,
+    progress,
     sub,
 }: {
     icon?: IconDefinition;
     image?: ImageDef;
     title?: ReactNode;
+    progress?: number;
     sub?: ReactNode;
 }) {
     if (typeof title === "string") {
@@ -81,6 +85,12 @@ function Inner({
     }
     return (
         <>
+            {progress && (
+                <div
+                    className="card__progress"
+                    style={{ width: `${Math.max(0, Math.min(1, progress)) * 100}%` }}
+                />
+            )}
             {icon && <FontAwesomeIcon icon={icon} className="card__icon" />}
             {image && (
                 <div className="card__image">
