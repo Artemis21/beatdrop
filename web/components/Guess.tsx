@@ -5,6 +5,7 @@ import { Card } from "./Card";
 import { TrackCard } from "./TrackCard";
 import { useTimer } from "../utils";
 import { useCallback, useEffect } from "react";
+import { GuessQuery } from "./Game";
 
 export function WrongGuess({ track }: { track: Track }) {
     return <TrackCard track={track} bad />;
@@ -25,13 +26,13 @@ export function EmptyGuess() {
 export function NewGuess({
     gameId,
     timedGuess,
-    guessQuery,
-    setGuessQuery,
+    guess,
+    setGuess,
 }: {
     gameId: number;
     timedGuess: GuessTiming | null;
-    guessQuery: string;
-    setGuessQuery: (q: string) => void;
+    guess: GuessQuery;
+    setGuess: (q: GuessQuery) => void;
 }) {
     const time = useTimer(20);
     // We have to `useCallback` because otherwise `invalidateGame` is a new
@@ -58,8 +59,8 @@ export function NewGuess({
         <SongSearch
             gameId={gameId}
             inputId="new_guess"
-            query={guessQuery}
-            setQuery={setGuessQuery}
+            guess={guess}
+            setGuess={setGuess}
         />
     );
     return (

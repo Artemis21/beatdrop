@@ -1,25 +1,25 @@
 import { useEffect, useState } from "react";
 import { Track, searchTracks, useNewGuess } from "../api";
 import { useThrottled, classModifiers } from "../utils";
+import { GuessQuery } from "./Game";
 
 export function SongSearch({
     gameId,
     inputId,
-    query,
-    setQuery,
+    guess,
+    setGuess,
 }: {
     gameId: number;
     inputId: string;
-    query: string;
-    setQuery: (q: string) => void;
+    guess: GuessQuery;
+    setGuess: (q: GuessQuery) => void;
 }) {
-    const debouncedQ = useThrottled(query, 500);
-    const [id, setId] = useState<number | null>(null);
+    const debouncedQ = useThrottled(guess.query, 500);
     const [active, setActive] = useState(false);
     const [tracks, setTracks] = useState<Track[] | undefined>(undefined);
     const [error, setError] = useState<object | null>(null);
     useEffect(() => {
-        if (id === null && debouncedQ !== "") {
+        if (guess.id === null && debouncedQ !== "") {
             let cancelled = false;
             searchTracks(debouncedQ)
                 .then(data => cancelled || setTracks(data.tracks))
@@ -28,27 +28,29 @@ export function SongSearch({
                 cancelled = true;
             };
         }
-    }, [debouncedQ, id]);
+    }, [debouncedQ, guess]);
     let results;
-    if (!active || query === "" || id !== null) {
+    if (!active || guess.query === "" || guess.id !== null) {
         results = null;
     } else if (error) {
         results = <SearchResultsPlaceholder message={error.toString()} />;
-    } else if (tracks === undefined || (tracks.length === 0 && query !== debouncedQ)) {
+    } else if (
+        tracks === undefined ||
+        (tracks.length === 0 && guess.query !== debouncedQ)
+    ) {
         results = <SearchResultsPlaceholder message="Loading..." />;
     } else if (tracks.length === 0) {
         results = <SearchResultsPlaceholder message="No results found." />;
     } else {
-        results = <SearchResults tracks={tracks} setQ={setQuery} setId={setId} />;
+        results = <SearchResults tracks={tracks} setGuess={setGuess} />;
     }
     let button;
-    if (id === null) {
-        button = (
-            <GuessButton gameId={gameId} guess={null} afterSubmit={() => setQuery("")} />
-        );
+    const resetGuess = () => setGuess({ query: "", id: null });
+    if (guess.id === null) {
+        button = <GuessButton gameId={gameId} guess={null} afterSubmit={resetGuess} />;
     } else {
         button = (
-            <GuessButton gameId={gameId} guess={id} afterSubmit={() => setQuery("")} />
+            <GuessButton gameId={gameId} guess={guess.id} afterSubmit={resetGuess} />
         );
     }
     return (
@@ -58,13 +60,15 @@ export function SongSearch({
                     className="input"
                     type="search"
                     placeholder="Title or artist..."
-                    onChange={e => {
-                        setId(null);
-                        setQuery(e.target.value);
-                    }}
+                    onChange={e =>
+                        setGuess({
+                            query: e.target.value,
+                            id: null,
+                        })
+                    }
                     onFocus={() => setActive(true)}
                     onBlur={() => setActive(false)}
-                    value={query}
+                    value={guess.query}
                     id={inputId}
                 />
                 {results}
@@ -76,21 +80,16 @@ export function SongSearch({
 
 function SearchResults({
     tracks,
-    setQ,
-    setId,
+    setGuess,
 }: {
     tracks: Track[];
-    setQ: (q: string) => void;
-    setId: (id: number) => void;
+    setGuess: (q: GuessQuery) => void;
 }) {
     return (
         <div className="search__results">
             {tracks.map(track => {
                 const displayName = `${track.title} - ${track.artistName}`;
-                const click = () => {
-                    setId(track.id);
-                    setQ(displayName);
-                };
+                const click = () => setGuess({ query: displayName, id: track.id });
                 return (
                     <button
                         className="search__results__result"

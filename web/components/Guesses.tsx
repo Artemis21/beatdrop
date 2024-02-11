@@ -1,4 +1,5 @@
 import { Game } from "../api";
+import { GuessQuery } from "./Game";
 import { WrongGuess, SkippedGuess, EmptyGuess, NewGuess } from "./Guess";
 import { Scrollable } from "./Scrollable";
 
@@ -8,8 +9,8 @@ export function Guesses({
     setGuessQuery,
 }: {
     game: Game;
-    guessQuery: string;
-    setGuessQuery: (q: string) => void;
+    guessQuery: GuessQuery;
+    setGuessQuery: (q: GuessQuery) => void;
 }) {
     const guessEls = [];
     for (let n = 0; n < constants.maxGuesses; n++) {
@@ -26,8 +27,8 @@ export function Guesses({
                     key={n}
                     gameId={id}
                     timedGuess={timedGuess}
-                    guessQuery={guessQuery}
-                    setGuessQuery={setGuessQuery}
+                    guess={guessQuery}
+                    setGuess={setGuessQuery}
                 />,
             );
         } else {
