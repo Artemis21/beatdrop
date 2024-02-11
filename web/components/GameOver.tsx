@@ -27,7 +27,7 @@ export function GameOver({ game }: { game: Game }) {
         const comment = COMMENTS[Math.min(guesses.length, COMMENTS.length) - 1];
         outcome = (
             <Card title={<>You won!&ensp;&bull;&ensp;{type}</>} icon={faCrown} good>
-                You took <b>{guesses.length}</b> {guessPlural} - {comment}
+                You took <b>{guesses.length} {guessPlural}</b> - {comment}
             </Card>
         );
     } else {

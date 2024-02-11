@@ -85,7 +85,7 @@ function Inner({
     }
     return (
         <>
-            {progress && (
+            {progress !== undefined && (
                 <div
                     className="card__progress"
                     style={{ width: `${Math.max(0, Math.min(1, progress)) * 100}%` }}
