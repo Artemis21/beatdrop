@@ -43,7 +43,10 @@ fn rocket() -> _ {
         .unwrap()
         .try_deserialize()
         .unwrap();
-    let figment = rocket::Config::figment().merge(("databases.main.url", &config.db_url));
+    let figment = rocket::Config::figment()
+        .merge(("address", &config.address))
+        .merge(("port", config.port))
+        .merge(("databases.main.url", &config.db_url));
     track::init(&config);
     user::init(&config);
     rocket::custom(figment)
@@ -69,6 +72,12 @@ pub struct Config {
     db_url: String,
     /// Directory to store cached media files in.
     media_dir: std::path::PathBuf,
+    /// Port to listen on (default 8000).
+    #[serde(default = "default_port")]
+    port: u16,
+    /// Address to listen on (default "127.0.0.1").
+    #[serde(default = "default_address")]
+    address: String,
     /// Enable frontend development mode: serve the frontend from the filesystem instead of
     /// embedding it in the binary, and run `parcel watch` to rebuild on changes (with HMR!).
     /// This avoids having to rebuild and restart the server for frontend development.
@@ -82,6 +91,16 @@ pub struct Config {
     /// How long a session token is valid for.
     #[serde(default = "default_session_lifetime")]
     session_lifetime: duration_string::DurationString,
+}
+
+/// Get the default configuration value for the port.
+const fn default_port() -> u16 {
+    8000
+}
+
+/// Get the default configuration value for the address.
+fn default_address() -> String {
+    "127.0.0.1".to_string()
 }
 
 /// Get the default configuration value for session lifetime.
