@@ -9,7 +9,7 @@ import { useState } from "react";
 export type GuessQuery = {
     query: string;
     id: number | null;
-}
+};
 
 export function Game() {
     const { gameId } = useParams();
@@ -25,9 +25,7 @@ export function Game() {
     }
     let game;
     if (data.won === null) {
-        game = (
-            <Guesses game={data} guessQuery={guess} setGuessQuery={setGuess} />
-        );
+        game = <Guesses game={data} guessQuery={guess} setGuessQuery={setGuess} />;
     } else {
         game = <GameOver game={data} />;
     }

@@ -9,6 +9,24 @@ type ImageDef = {
     alt: string;
 };
 
+type Flags = {
+    good?: boolean;
+    bad?: boolean;
+    active?: boolean;
+    padded?: boolean;
+    centred?: boolean;
+};
+
+type CardProps = {
+    title: ReactNode;
+    children?: ReactNode;
+    onClick?: MouseEventHandler<HTMLDivElement>;
+    image?: ImageDef;
+    icon?: IconDefinition;
+    link?: string;
+    progress?: number;
+} & Flags;
+
 export function Card({
     title,
     children,
@@ -17,31 +35,10 @@ export function Card({
     icon,
     link,
     progress,
-    good,
-    bad,
-    active,
-    extended,
-}: {
-    title: ReactNode;
-    children?: ReactNode;
-    onClick?: MouseEventHandler<HTMLDivElement>;
-    image?: ImageDef;
-    icon?: IconDefinition;
-    link?: string;
-    progress?: number;
-    good?: boolean;
-    bad?: boolean;
-    active?: boolean;
-    extended?: boolean;
-}) {
+    ...flags
+}: CardProps) {
     const inner = Inner({ icon, image, title, progress, sub: children });
-    const outerClass = classModifiers("card", {
-        good,
-        bad,
-        active,
-        extended,
-        button: link || onClick,
-    });
+    const outerClass = classModifiers("card", { button: link || onClick, ...flags });
     if (link && link.startsWith("/")) {
         return (
             <Link to={link} className={outerClass}>

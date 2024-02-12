@@ -3,23 +3,6 @@
     flex-direction: column
     gap: 1rem
 
-.card_stack--centred .card
-    align-items: center
-
-    // if there is no sub OR there is no thumb, centre the title
-    &:not(:has(.card__sub)), &:not(:has(.card__icon, .card__image))
-        .card__title
-            justify-self: center
-            text-align: center
-
-    // if there is only an icon and a title, centre them together
-    &:has(.card__icon):not(:has(.card__sub))
-        display: flex
-        justify-content: center
-
-        .card__icon
-            font-size: 2rem
-
 .card
     border: 0
     text-decoration: none
@@ -86,11 +69,28 @@
     &.card--with-sub
         grid-template-areas: "thumb title" "thumb sub"
 
-.card--extended
+.card--padded
     padding: 2rem
 
     .card__title
         margin-bottom: 0.5rem
+
+.card--centred
+    place-items: center
+
+    // if there is no sub OR there is no thumb, centre the title
+    &:not(:has(.card__sub)), &:not(:has(.card__icon, .card__image))
+        .card__title
+            justify-self: center
+            text-align: center
+
+    // if there is only an icon and a title, centre them together
+    &:has(.card__icon):not(:has(.card__sub))
+        display: flex
+        justify-content: center
+
+        .card__icon
+            font-size: 2rem
 
 .card--button
     cursor: pointer

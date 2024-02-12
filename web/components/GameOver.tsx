@@ -4,6 +4,7 @@ import { Scrollable } from "./Scrollable";
 import { TrackCard } from "./TrackCard";
 import { faCrown, faHeartCrack, faPlay } from "@fortawesome/free-solid-svg-icons";
 import { Card } from "./Card";
+import { Attribution } from "./Attribution";
 
 const COMMENTS = [
     "wow!!",
@@ -27,7 +28,11 @@ export function GameOver({ game }: { game: Game }) {
         const comment = COMMENTS[Math.min(guesses.length, COMMENTS.length) - 1];
         outcome = (
             <Card title={<>You won!&ensp;&bull;&ensp;{type}</>} icon={faCrown} good>
-                You took <b>{guesses.length} {guessPlural}</b> - {comment}
+                You took{" "}
+                <b>
+                    {guesses.length} {guessPlural}
+                </b>{" "}
+                - {comment}
             </Card>
         );
     } else {
@@ -42,6 +47,7 @@ export function GameOver({ game }: { game: Game }) {
             <div className="card_stack">
                 {outcome}
                 <TrackCard track={track} link />
+                <Attribution />
                 <Card title="New Game" icon={faPlay} link="/">
                     Click to play again
                 </Card>

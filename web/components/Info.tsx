@@ -18,8 +18,8 @@ export function Info() {
     const daily = <GameType game={{ isDaily: true }} />;
     return (
         <Scrollable>
-            <div className="card_stack card_stack--centred">
-                <Card title="How to Play" extended>
+            <div className="card_stack">
+                <Card title="How to Play" padded centred>
                     <ol className="fa-ul">
                         <li>
                             <FontAwesomeIcon icon={faPlay} listItem />
@@ -52,7 +52,7 @@ export function Info() {
                         </li>
                     </ol>
                 </Card>
-                <Card title="About" extended>
+                <Card title="About" padded centred>
                     <p>
                         <b>Beatdrop</b> is a name-that-tune music guessing game inspired
                         by the now-discontinued Heardle.

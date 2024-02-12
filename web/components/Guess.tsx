@@ -67,9 +67,7 @@ export function NewGuess({
         <Card title={search} progress={fractionElapsed} active>
             <label htmlFor="new_guess" className="search_label">
                 <p>Start typing a song title or artist for suggestions.</p>
-                    {remainingTime && (
-                        <p>{(remainingTime / 1000).toFixed(2)}s remaining</p>
-                    )}
+                {remainingTime && <p>{(remainingTime / 1000).toFixed(2)}s remaining</p>}
             </label>
         </Card>
     );

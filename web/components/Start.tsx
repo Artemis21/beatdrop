@@ -9,6 +9,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Scrollable } from "./Scrollable";
 import { Card } from "./Card";
+import { Attribution } from "./Attribution";
 
 export function Start() {
     const { data, error } = useRecentGames();
@@ -28,6 +29,7 @@ export function Start() {
         buttons.push(<UnlimitedButton key="unlimited" />);
         buttons.push(<TimedButton key="timed" />);
     }
+    buttons.push(<Attribution />);
     return (
         <Scrollable>
             <div className="card_stack">{buttons}</div>
