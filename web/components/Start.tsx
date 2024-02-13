@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Error, Loading } from "./Placeholder";
 import {
     faCalendarDay,
-    faClock,
+    // faClock,
     faInfinity,
     faPlay,
 } from "@fortawesome/free-solid-svg-icons";
@@ -27,7 +27,7 @@ export function Start() {
     } else {
         buttons.push(<DailyButton key="daily" id={data.daily} />);
         buttons.push(<UnlimitedButton key="unlimited" />);
-        buttons.push(<TimedButton key="timed" />);
+        // buttons.push(<TimedButton key="timed" />);
     }
     buttons.push(<Attribution />);
     return (
@@ -79,6 +79,7 @@ function UnlimitedButton() {
     );
 }
 
+/*
 function TimedButton() {
     return (
         <Card title="Timed" icon={faClock} link="/start?timed=true">
@@ -86,3 +87,4 @@ function TimedButton() {
         </Card>
     );
 }
+*/

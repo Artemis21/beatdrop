@@ -28,7 +28,7 @@ function UpdateUser({ current }: { current: User }) {
     const { mutate, isLoading } = useUpdateUser();
     const usernameInput = useRef<HTMLInputElement>(null);
     return (
-        <Card title="Change display name">
+        <Card title="Change display name" centred>
             <form className="form_row">
                 <input
                     type="text"
