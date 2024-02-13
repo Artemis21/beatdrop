@@ -33,20 +33,30 @@ pub async fn chart(genre_id: Id) -> Result<Vec<Track>> {
     Ok(data.data)
 }
 
+/// Genres we don't want to show.
+const GENRE_BLACKLIST: [u32; 2] = [
+    0,   // All
+    457, // Audiobooks
+];
+
 /// Get a list of common genres.
 /// There does not seem to be a way to get a list of all genres, short of enumerating
 /// all possible genre IDs.
 pub async fn genres() -> Result<Vec<Genre>> {
     let url = format!("{API_URL}/genre");
-    let data: DataWrap<_> = CLIENT
+    let genres = CLIENT
         .get(&url)
         .send()
         .await
         .wrap_err("error fetching genre list")?
-        .json()
+        .json::<DataWrap<Vec<Genre>>>()
         .await
-        .wrap_err("error deserialising genre list")?;
-    Ok(data.data)
+        .wrap_err("error deserialising genre list")?
+        .data
+        .into_iter()
+        .filter(|genre| !GENRE_BLACKLIST.contains(&genre.id))
+        .collect();
+    Ok(genres)
 }
 
 /// Get an album by its ID.
