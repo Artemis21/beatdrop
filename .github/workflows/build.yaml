@@ -32,20 +32,11 @@ jobs:
       with:
         cache: 'yarn'
 
-    - name: Restore cached target dir
-      uses: actions/cache/restore@v4
-      with:
-        path: target
-        key: beatdrop-main-target
+    - name: Cache rust target dir
+      uses: Swatinem/rust-cache@v2
 
     - name: Build
       run: cargo build --release --locked
-
-    - name: Cache target dir
-      uses: actions/cache/save@v4
-      with:
-        path: target
-        key: beatdrop-main-target
 
     - name: Create release
       run: gh release create commit-${{ github.sha }} target/release/beatdrop
