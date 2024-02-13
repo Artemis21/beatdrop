@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT track.id FROM track\n        LEFT JOIN daily_track ON track.id = daily_track.track_id\n        ORDER BY\n            daily_track.for_day ASC NULLS FIRST,\n            RANDOM() * track.deezer_rank DESC\n        LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "9cea31ffa0aa225465c01bb2bb9ebced4ee7096f9a5614a97455f311f48a5d99"
+}

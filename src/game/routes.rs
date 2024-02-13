@@ -79,10 +79,9 @@ async fn new_game(
         }
         track::pick::daily(&mut tx).await?
     } else if let Some(genre_id) = body.genre_id {
-        // FIXME: avoid picking tracks the user has already played
-        track::pick::genre(&mut tx, genre_id).await?
+        track::pick::genre(&mut tx, genre_id, user.id).await?
     } else {
-        track::pick::any(&mut tx).await?
+        track::pick::any(&mut tx, user.id).await?
     };
     let game = Game::create(
         &mut tx,
