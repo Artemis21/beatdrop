@@ -17,10 +17,10 @@
 .input
     font: inherit
     font-size: 1.2rem
-    border: 4px solid #000
+    border: 4px solid $input-fg
     border-radius: 2rem
     padding: 0.5rem 1rem
-    background: #fff
+    background: $input-bg
     width: 100%
 
 .search__results
@@ -33,11 +33,11 @@
 .search__results__result, .search__results__placeholder
     font: inherit
     text-align: left
-    background: #fff
+    background: $results-bg
     width: 100%
     box-sizing: border-box
     padding: 0.2rem 0.4rem
-    border: 1px solid #aaa
+    border: 1px solid $results-border
 
     &:not(:last-child)
         border-bottom-width: 0
@@ -46,7 +46,7 @@
     cursor: pointer
 
 .search__results__placeholder
-    color: #666
+    color: $results-placeholder
     font-style: italic
 
 .submit
@@ -55,9 +55,9 @@
     border-radius: 2rem
     padding: 0.5rem 1rem
     cursor: pointer
-    background: #282
-    color: #fff
+    background: $primary-input-bg
+    color: $primary-input-fg
 
 .submit--secondary
-    background: #ccc
-    color: #000
+    background: $secondary-input-bg
+    color: $secondary-input-fg

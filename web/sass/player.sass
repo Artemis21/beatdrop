@@ -9,13 +9,13 @@
     height: 2rem
 
 .play_bar__seg--unlocked
-    background: #aaa
+    background: $track-unlocked
 
 .play_bar__seg--locked
-    background: #eee
+    background: $track-locked
 
 .play_bar__seg__fill
-    background: #5a5
+    background: $track-played
     height: 2rem
 
 .controls
@@ -30,8 +30,8 @@
     background: inherit
     font: inherit
     font-size: 2.5rem
-    background: #eee
-    color: #444
+    background: $control-bg
+    color: $control-fg
     width: 2em
     height: 2em
     border-radius: 1em
@@ -44,10 +44,10 @@
     font-size: 3rem
 
 .control--disabled
-    color: #666
+    color: $control-disabled-fg
 
 .control--enabled
     cursor: pointer
 
     &:hover
-        color: #000
+        color: $control-active-fg

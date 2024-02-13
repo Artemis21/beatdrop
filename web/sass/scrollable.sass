@@ -14,12 +14,12 @@
 
     &::-webkit-scrollbar-thumb
         width: 18px
-        background: #8888
+        background: $scroll-thumb
         border: 6px solid white
         border-radius: 9px
         background-clip: padding-box
         &:hover
-            background: #666
+            background: $scroll-thumb-active
 
     &:before, &:after
         content: ""
@@ -31,11 +31,11 @@
 
     &:before
         top: 0
-        box-shadow: 0 0 20px 10px #0006
+        box-shadow: 0 0 20px 10px $scroll-hint
 
     &:after
         bottom: 0
-        box-shadow: 0 0 20px 10px #0006
+        box-shadow: 0 0 20px 10px $scroll-hint
 
 .scrollable--scroll-up:before
     opacity: 1
