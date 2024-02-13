@@ -11,7 +11,11 @@ const API_URL: &str = "https://api.deezer.com";
 
 lazy_static! {
     /// A shared HTTP client for making requests to the API.
-    static ref CLIENT: reqwest::Client = reqwest::Client::new();
+    static ref CLIENT: reqwest::Client = {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(reqwest::header::ACCEPT_LANGUAGE, "en".parse().unwrap());
+        reqwest::Client::builder().default_headers(headers).build().unwrap()
+    };
 }
 
 /// Fetch the "chart" (a list of popular tracks) for a given genre.
