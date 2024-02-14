@@ -5,7 +5,14 @@ use serde::{Deserialize, Serialize};
 
 /// Collect API routes for managing games.
 pub fn routes() -> Vec<rocket::Route> {
-    routes![new_game, recent_games, get_game, new_guess, get_clip,]
+    routes![
+        new_game,
+        recent_games,
+        get_game,
+        resign_game,
+        new_guess,
+        get_clip,
+    ]
 }
 
 impl Session {
@@ -113,6 +120,23 @@ async fn get_game(
 struct NewGuess {
     /// The ID of the track to guess, or `null` to skip.
     track_id: Option<deezer::Id>,
+}
+
+/// Resign from the given game.
+#[post("/games/<id>/resign")]
+async fn resign_game(
+    mut tx: Transaction<'_>,
+    auth: Session,
+    id: i32,
+) -> Result<Json<game::Response>, ApiError> {
+    let mut game = auth.game(&mut tx, id).await?;
+    if game.is_over() {
+        return Err(ApiError::conflict("game is already over"));
+    }
+    game.set_won(&mut tx, false).await?;
+    let game = game.into_response(&mut tx).await?;
+    tx.commit().await?;
+    Ok(Json(game))
 }
 
 /// Submit a guess for the authenticated user's active game.

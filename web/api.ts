@@ -268,6 +268,21 @@ export function useNewGame() {
     return useMutate(() => "/games", newGame, { populateCache: false });
 }
 
+/** Resign from a game.
+ *
+ * @param gameId The ID of the game to resign from.
+ * @returns The updated game.
+ */
+async function resignGame({ gameId }: { gameId: number }): Promise<Game> {
+    const response = await endpoint("POST", `/games/${gameId}/resign`);
+    return await response.json();
+}
+
+export function useResignGame() {
+    const key = ({ gameId }: { gameId: number }) => ["/games/:id", gameId];
+    return useMutate(key, resignGame, { populateCache: true });
+}
+
 /** Guess a track.
  *
  * @param gameId The ID of the game to submit a guess for.
