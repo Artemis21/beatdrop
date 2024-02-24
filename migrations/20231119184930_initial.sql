@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS game (
     id SERIAL PRIMARY KEY,
 
     -- The user who played the game
-    account_id INTEGER REFERENCES account(id) NOT NULL ON DELETE CASCADE,
+    account_id INTEGER REFERENCES account(id) ON DELETE CASCADE NOT NULL,
 
     -- When the game was started
     started_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT TIMEZONE('utc', NOW()),
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS game (
 -- A guess in a game
 CREATE TABLE IF NOT EXISTS game_guess (
     -- The game this guess is for
-    game_id INTEGER REFERENCES game(id) NOT NULL ON DELETE CASCADE,
+    game_id INTEGER REFERENCES game(id) ON DELETE CASCADE NOT NULL,
 
     -- Which number guess this was (1 for the first guess, etc.)
     guess_number INTEGER NOT NULL,
