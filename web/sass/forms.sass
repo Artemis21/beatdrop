@@ -2,17 +2,14 @@
     display: flex
     gap: 0.5rem
     margin: 0.5rem
+    width: calc(100% - 1rem)
 
 .search_label
-    opacity: 0.6
+    color: $label-fg
     font-size: 0.85rem
     text-align: center
     font-style: normal
     display: block
-
-.search
-    position: relative
-    flex-grow: 2
 
 .input
     font: inherit
@@ -22,10 +19,43 @@
     padding: 0.5rem 1rem
     background: $input-bg
     width: 100%
+    flex-grow: 999
+
+    &:focus-visible
+        @include focus
+
+.search
+    position: relative
+    flex-grow: 2
+    border: 4px solid $input-fg
+    border-radius: 2rem
+    padding: 0.5rem 1rem
+    background: $input-bg
+    display: flex
+    align-items: center
+
+    &:has(.search__input:focus-visible)
+        @include focus
+
+.search__icon
+    font-size: 1.2rem
+    margin-right: 1ch
+
+.search__input
+    border: 0
+    padding: 0
+    flex-grow: 999
+    background: inherit
+    font: inherit
+    font-size: 1.2rem
+
+    &:focus-visible
+        // we apply an outline to the parent instead
+        outline: 0
 
 .search__results
     position: absolute
-    top: calc(100% - 0.5rem - 4px)
+    top: calc(100% - 0.5rem)
     left: 0
     width: 100%
     z-index: 2
@@ -44,6 +74,12 @@
 
 .search__results__result
     cursor: pointer
+    position: relative  // so z-index works
+
+    &:focus-visible
+        @include focus
+        // prevent outline being hidden by other elements
+        z-index: 10
 
 .search__results__placeholder
     color: $results-placeholder
@@ -58,6 +94,32 @@
     background: $primary-input-bg
     color: $primary-input-fg
 
+    &:focus-visible
+        @include focus
+
 .submit--secondary
     background: $secondary-input-bg
     color: $secondary-input-fg
+
+.submit--danger
+    background: $danger-input-bg
+    color: $danger-input-fg
+    border: 3px solid $danger-input-fg
+
+.link_button
+    font: inherit
+    font-size: 1.1rem
+    font-weight: 450
+    border: 0
+    background: inherit
+    text-decoration: underline
+    text-decoration-thickness: 2px
+    cursor: pointer
+    color: $fg
+    align-self: center // avoid stretching
+
+    &:focus-visible
+        @include focus
+
+.link_button--danger
+    color: $danger-fg

@@ -13,12 +13,16 @@ export function TrackCard({
     const image = {
         // FIXME: pick size appropriately (small/medium/big/xl)
         src: `${track.albumCover}?size=xl`,
-        alt: `Album cover for ${track.albumTitle}`,
+        alt: "", // just decorative
     };
     const linkProp = link ? track.link : undefined;
     return (
-        <Card title={track.title} image={image} link={linkProp} bad={bad}>
-            {track.artistName}
-        </Card>
+        <Card
+            image={image}
+            title={track.title}
+            details={track.artistName}
+            link={linkProp}
+            bad={bad}
+        />
     );
 }

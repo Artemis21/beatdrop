@@ -4,7 +4,7 @@
     flex-grow: 1
     flex-shrink: 1
     position: relative
-    width: $body-width
+    width: 100%
     overflow-y: auto
 
     // this is webkit only, but firefox scrollbars are nice anyway
@@ -36,6 +36,9 @@
     &:after
         bottom: 0
         box-shadow: 0 0 20px 10px $scroll-hint
+
+    &:focus-visible
+        @include focus
 
 .scrollable--scroll-up:before
     opacity: 1

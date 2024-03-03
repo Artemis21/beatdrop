@@ -3,7 +3,7 @@
     gap: 0.2rem
     overflow: clip
     border-radius: 1rem
-    width: $body-width
+    width: 100%
 
 .play_bar__seg
     height: 2rem
@@ -39,6 +39,9 @@
     align-items: center
     justify-content: center
     transition: color 50ms linear
+
+    &:focus-visible
+        @include focus
 
 .control--play
     font-size: 3rem

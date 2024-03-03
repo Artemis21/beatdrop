@@ -9,26 +9,35 @@ type ImageDef = {
     alt: string;
 };
 
+type IconProps = {
+    fa: IconDefinition;
+    label?: string;
+};
+
+type IconDef = IconProps | IconDefinition;
+
 type Flags = {
     good?: boolean;
     bad?: boolean;
     active?: boolean;
-    padded?: boolean;
+    extended?: boolean;
     centred?: boolean;
 };
 
 type CardProps = {
-    title: ReactNode;
+    title?: ReactNode;
+    details?: ReactNode;
     children?: ReactNode;
-    onClick?: MouseEventHandler<HTMLDivElement>;
+    onClick?: MouseEventHandler<HTMLButtonElement>;
     image?: ImageDef;
-    icon?: IconDefinition;
+    icon?: IconDef;
     link?: string;
     progress?: number;
 } & Flags;
 
 export function Card({
     title,
+    details,
     children,
     onClick,
     image,
@@ -37,7 +46,7 @@ export function Card({
     progress,
     ...flags
 }: CardProps) {
-    const inner = Inner({ icon, image, title, progress, sub: children });
+    const inner = <Inner {...{ icon, image, title, details, progress, children }} />;
     const outerClass = classModifiers("card", { button: link || onClick, ...flags });
     if (link && link.startsWith("/")) {
         return (
@@ -51,14 +60,14 @@ export function Card({
                 {inner}
             </a>
         );
-    } else {
-        // FIXME: We should be using a button element if there is onClick, but for
-        //        some reason it's causing styling issues on the genre picker.
+    } else if (onClick) {
         return (
-            <div className={outerClass} onClick={onClick} role="button">
+            <button className={outerClass} onClick={onClick}>
                 {inner}
-            </div>
+            </button>
         );
+    } else {
+        return <div className={outerClass}>{inner}</div>;
     }
 }
 
@@ -66,19 +75,19 @@ function Inner({
     icon,
     image,
     title,
+    details,
     progress,
-    sub,
+    children,
 }: {
-    icon?: IconDefinition;
+    icon?: IconDef;
     image?: ImageDef;
     title?: ReactNode;
+    details?: ReactNode;
     progress?: number;
-    sub?: ReactNode;
+    children?: ReactNode;
 }) {
-    if (typeof title === "string") {
-        title = <p className="card__title">{title}</p>;
-    } else {
-        title = <div className="card__title">{title}</div>;
+    if (icon && !("fa" in icon)) {
+        icon = { fa: icon };
     }
     return (
         <>
@@ -88,14 +97,21 @@ function Inner({
                     style={{ width: `${Math.max(0, Math.min(1, progress)) * 100}%` }}
                 />
             )}
-            {icon && <FontAwesomeIcon icon={icon} className="card__icon" />}
+            {icon && (
+                <div className="card__icon">
+                    <FontAwesomeIcon icon={icon.fa} title={icon.label} />
+                </div>
+            )}
             {image && (
                 <div className="card__image">
                     <img src={image.src} alt={image.alt} />
                 </div>
             )}
-            {title}
-            {sub && <div className="card__sub">{sub}</div>}
+            <div className="card__body">
+                {title && <h2 className="card__title">{title}</h2>}
+                {details && <p className="card__details">{details}</p>}
+                {children}
+            </div>
         </>
     );
 }

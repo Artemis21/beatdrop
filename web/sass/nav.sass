@@ -5,7 +5,7 @@
     padding: 0.5rem 1rem
     border-bottom: 1px solid $fg
     box-sizing: border-box
-    width: $body-width
+    width: 100%
 
 .nav__pad
     flex-grow: 1
@@ -16,6 +16,9 @@
     color: $fg
     text-decoration: none
     cursor: pointer
+
+.nav__button:focus-visible
+    @include focus
 
 .nav__icon
     font-size: 1.5rem

@@ -19,8 +19,8 @@ export function Info() {
     return (
         <Scrollable>
             <div className="card_stack">
-                <Card title="How to Play" padded centred>
-                    <ol className="fa-ul">
+                <Card title="How to Play" extended>
+                    <ol className="fa-ul card__details">
                         <li>
                             <FontAwesomeIcon icon={faPlay} listItem />
                             Start a game - try <b>{daily}</b> for your first time.
@@ -52,21 +52,21 @@ export function Info() {
                         </li>
                     </ol>
                 </Card>
-                <Card title="About" padded centred>
-                    <p>
+                <Card title="About" extended>
+                    <p className="card__details">
                         <b>Beatdrop</b> is a name-that-tune music guessing game inspired
                         by the now-discontinued Heardle.
                     </p>
-                    <p>
+                    <p className="card__details">
                         Music metadata, album art and track audio are provided by{" "}
                         <a href="https://deezer.com">Deezer</a>.
                     </p>
-                    <p>
+                    <p className="card__details">
                         Beatdrop is a personal project by AM Vellacott, and is not
                         affiliated with Deezer, Spotify, Heardle, or any other music
                         service.{" "}
                     </p>
-                    <p>
+                    <p className="card__details">
                         <a href="https://github.com/Artemis21/beatdrop">
                             The source code is available on GitHub.
                         </a>

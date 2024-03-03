@@ -27,19 +27,22 @@ export function GameOver({ game }: { game: Game }) {
         const guessPlural = guesses.length === 1 ? "guess" : "guesses";
         const comment = COMMENTS[Math.min(guesses.length, COMMENTS.length) - 1];
         outcome = (
-            <Card title={<>You won!&ensp;&bull;&ensp;{type}</>} icon={faCrown} good>
-                You took{" "}
-                <b>
-                    {guesses.length} {guessPlural}
-                </b>{" "}
-                - {comment}
-            </Card>
+            <Card
+                icon={faCrown}
+                title={<>You won!&ensp;&bull;&ensp;{type}</>}
+                // prettier-ignore
+                details={<>You took <b>{guesses.length} {guessPlural}</b> - {comment}</>}
+                good
+            />
         );
     } else {
         outcome = (
-            <Card title={<>You Lost&ensp;&bull;&ensp;{type}</>} icon={faHeartCrack} bad>
-                But you discovered a new song!
-            </Card>
+            <Card
+                icon={faHeartCrack}
+                title={<>You Lost&ensp;&bull;&ensp;{type}</>}
+                details="But you discovered a new song!"
+                bad
+            />
         );
     }
     return (
@@ -48,9 +51,12 @@ export function GameOver({ game }: { game: Game }) {
                 {outcome}
                 <TrackCard track={track} link />
                 <Attribution />
-                <Card title="New Game" icon={faPlay} link="/">
-                    Click to play again
-                </Card>
+                <Card
+                    icon={faPlay}
+                    title="New Game"
+                    details="Click to play again"
+                    link="/"
+                />
             </div>
         </Scrollable>
     );

@@ -29,19 +29,24 @@ export function Start() {
         buttons.push(<UnlimitedButton key="unlimited" />);
         // buttons.push(<TimedButton key="timed" />);
     }
-    buttons.push(<Attribution />);
     return (
         <Scrollable>
-            <div className="card_stack">{buttons}</div>
+            <div className="card_stack">
+                {buttons}
+                <Attribution />
+            </div>
         </Scrollable>
     );
 }
 
 function ResumeButton({ id }: { id: number }) {
     return (
-        <Card title="Resume" icon={faPlay} link={`/games/${id}`}>
-            You have an ongoing game
-        </Card>
+        <Card
+            icon={faPlay}
+            title="Resume"
+            details="You have an ongoing game"
+            link={`/games/${id}`}
+        />
     );
 }
 
@@ -57,25 +62,20 @@ function DailyButton({ id }: { id: number | null }) {
     };
     const sub = id === null ? "Play today's daily game" : "See your results for today";
     if (isLoading) {
-        return (
-            <Card title="Loading..." icon={faCalendarDay}>
-                {sub}
-            </Card>
-        );
+        return <Card icon={faCalendarDay} title="Loading..." details={sub} />;
     } else {
-        return (
-            <Card title="Daily" icon={faCalendarDay} onClick={click}>
-                {sub}
-            </Card>
-        );
+        return <Card icon={faCalendarDay} title="Daily" details={sub} onClick={click} />;
     }
 }
 
 function UnlimitedButton() {
     return (
-        <Card title="Unlimited" icon={faInfinity} link="/start?timed=false">
-            Play as much as you want or pick a genre
-        </Card>
+        <Card
+            icon={faInfinity}
+            title="Unlimited"
+            details="Play as much as you want or pick a genre"
+            link="/start?timed=false"
+        />
     );
 }
 

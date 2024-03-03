@@ -5,7 +5,7 @@ import { Genre, useGenres } from "../api";
 import { Error, Loading } from "./Placeholder";
 import { Scrollable } from "./Scrollable";
 import { GameType } from "./GameType";
-import { useState } from "react";
+import { RefObject, useRef, useState } from "react";
 import { Card } from "./Card";
 
 export function NewGame() {
@@ -14,6 +14,7 @@ export function NewGame() {
     const { data, error } = useGenres();
     const [genre, setGenre] = useState<Genre | null>(null);
     const [filter, setFilter] = useState("");
+    const inputEl = useRef<HTMLInputElement>(null);
     if (error) return <Error error={error} />;
     if (data === undefined) return <Loading />;
     const genres = data.genres.filter(
@@ -28,15 +29,16 @@ export function NewGame() {
             <label htmlFor="genre_search">
                 Pick a genre, or leave blank to select randomly
             </label>
-            <div className="form_row">
+            <form className="form_row" onSubmit={e => e.preventDefault()}>
                 <Filter
                     filter={filter}
                     setFilter={setFilter}
                     genre={genre}
                     setGenre={setGenre}
+                    inputRef={inputEl}
                 />
                 <StartGame timed={timed} genre={genre} />
-            </div>
+            </form>
             <Scrollable>
                 <div className="card_stack">
                     {genres.map(g => {
@@ -45,7 +47,10 @@ export function NewGame() {
                                 key={g.id}
                                 genre={g}
                                 activeGenre={genre}
-                                setActiveGenre={setGenre}
+                                setActiveGenre={genre => {
+                                    setGenre(genre);
+                                    inputEl.current?.focus();
+                                }}
                             />
                         );
                     })}
@@ -77,11 +82,13 @@ export function Filter({
     genre,
     setFilter,
     setGenre,
+    inputRef,
 }: {
     filter: string;
     genre: Genre | null;
     setFilter: (_: string) => void;
     setGenre: (_: Genre | null) => void;
+    inputRef: RefObject<HTMLInputElement>;
 }) {
     return (
         <input
@@ -94,6 +101,8 @@ export function Filter({
             }}
             value={genre?.name || filter}
             id="genre_search"
+            ref={inputRef}
+            autoFocus
         />
     );
 }

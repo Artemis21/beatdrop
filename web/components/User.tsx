@@ -12,7 +12,7 @@ export function User() {
     if (data === undefined) return <Loading />;
     return (
         <Scrollable>
-            <div className="card_stack card_stack--centred">
+            <div className="card_stack">
                 <Card title={`Hi, ${data.displayName || "Anonymous"}!`} icon={faUser}>
                     Your account (ID {data.id}) was created on{" "}
                     {new Date(data.createdAt).toLocaleDateString()}.
