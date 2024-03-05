@@ -24,7 +24,7 @@ export function Nav() {
                 <FontAwesomeIcon
                     className="nav__icon"
                     icon={faInfo}
-                    title="About and delete"
+                    title="About"
                     fixedWidth
                 />
             </Link>

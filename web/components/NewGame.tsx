@@ -26,7 +26,7 @@ export function NewGame() {
             <h2 className="sub">
                 <GameType game={{ isDaily: false, isTimed: timed, genre }} />
             </h2>
-            <label htmlFor="genre_search">
+            <label htmlFor="genre_search" className="sub">
                 Pick a genre, or leave blank to select randomly
             </label>
             <form className="form_row" onSubmit={e => e.preventDefault()}>
@@ -120,7 +120,7 @@ export function Genre({
     return (
         <Card
             title={genre.name}
-            image={{ src: `${genre.picture}?size=xl`, alt: genre.name }}
+            image={{ src: `${genre.picture}?size=xl`, alt: "" }}  // no alt since title is there
             onClick={() => (active ? setActiveGenre(null) : setActiveGenre(genre))}
             active={active}
         />

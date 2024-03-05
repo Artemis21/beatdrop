@@ -5,6 +5,7 @@ import { GuessQuery } from "./Game";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Card } from "./Card";
+import { Resign } from "./Resign";
 
 export function NewGuess({
     gameId,
@@ -20,7 +21,7 @@ export function NewGuess({
     const inputEl = useRef<HTMLInputElement>(null);
     return (
         <Card active>
-            <form className="form_row" onSubmit={e => e.preventDefault()}>
+            <form className="form_col" onSubmit={e => e.preventDefault()}>
                 <div
                     className="search"
                     ref={searchEl}
@@ -48,7 +49,10 @@ export function NewGuess({
                         />
                     )}
                 </div>
-                <GuessButton gameId={gameId} guess={guess} setGuess={setGuess} />
+                <div className="form_row">
+                    <Resign gameId={gameId} />
+                    <GuessButton gameId={gameId} guess={guess} setGuess={setGuess} />
+                </div>
             </form>
         </Card>
     );

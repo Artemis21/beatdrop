@@ -15,8 +15,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Card } from "./Card";
 import { TrackCard } from "./TrackCard";
-import { Game, useResignGame } from "../api";
-import { classModifiers } from "../utils";
+import { Game } from "../api";
 import { GuessQuery } from "./Game";
 import { NewGuess } from "./NewGuess";
 import { Scrollable } from "./Scrollable";
@@ -54,25 +53,8 @@ export function Guesses({
                 {guessEls}
                 <NewGuess gameId={id} guess={guessQuery} setGuess={setGuessQuery} />
                 <RemainingGuesses remaining={constants.maxGuesses - guesses.length - 1} />
-                <ResignButton gameId={id} />
             </div>
         </Scrollable>
-    );
-}
-
-function ResignButton({ gameId }: { gameId: number }) {
-    const { mutate, isLoading } = useResignGame();
-    const className = classModifiers("link_button", { danger: true });
-    if (isLoading) return <button className={className}>...</button>;
-    const onClick = async () => {
-        if (confirm("Are you sure you want to resign this game?")) {
-            await mutate({ gameId });
-        }
-    };
-    return (
-        <button className={className} onClick={onClick}>
-            Give Up
-        </button>
     );
 }
 
