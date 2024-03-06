@@ -20,6 +20,7 @@ mod api_error;
 mod database;
 mod deezer;
 mod game;
+mod ratelimit;
 mod tasks;
 mod track;
 mod user;

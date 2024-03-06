@@ -1,9 +1,11 @@
 //! A minimal wrapper for the parts of the Deezer API we care about.
 //! API documentation: <https://developers.deezer.com/api>
-use eyre::{Context, Result};
+use eyre::{eyre, Context, Result};
 use lazy_static::lazy_static;
-use serde::{Deserialize, Serialize};
+use reqwest::RequestBuilder;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 // We don't actually use Rocket here, but Reqwest also uses this `Bytes` type and doesn't re-export it.
+use crate::ratelimit::{Backoff, Ratelimit};
 use rocket::http::hyper::body::Bytes;
 
 /// Base URL for the API.
@@ -16,6 +18,77 @@ lazy_static! {
         headers.insert(reqwest::header::ACCEPT_LANGUAGE, "en".parse().unwrap());
         reqwest::Client::builder().default_headers(headers).build().unwrap()
     };
+
+    /// A rate limiter for the Deezer API.
+    ///
+    /// Deezer currently allows 50 requests per 5 seconds, and this configuration
+    /// should align with that.
+    static ref RATELIMIT: Ratelimit = Ratelimit::new(50, std::time::Duration::from_millis(100));
+}
+
+/// Make a request to the Deezer API, respecting the rate limit and retrying
+/// if we hit it or the service is busy, with exponential backoff.
+async fn send_request<T: DeserializeOwned + Send>(req: RequestBuilder) -> Result<Option<T>> {
+    let backoff = Backoff::new(
+        std::time::Duration::from_secs(1),
+        std::time::Duration::from_secs(300),
+        2,
+    );
+    for delay in backoff {
+        RATELIMIT.wait().await;
+        let response = req
+            .try_clone()
+            .expect("reqwest request cloning should not fail")
+            .send()
+            .await
+            .wrap_err("error sending request to Deezer")?
+            .error_for_status()
+            .wrap_err("Deezer API returned an HTTP error")?
+            .json()
+            .await
+            .wrap_err("error deserialising Deezer API response")?;
+        match response {
+            Response::Data(data) => return Ok(Some(data)),
+            Response::Error { error } => match error.code {
+                ErrorCode::Ratelimited | ErrorCode::ServiceBusy => {
+                    eprintln!(
+                        "Deezer API returned a temporary error, retrying in {}s: {error}",
+                        delay.as_secs()
+                    );
+                    tokio::time::sleep(delay).await;
+                }
+                ErrorCode::NotFound => return Ok(None),
+                ErrorCode::Unknown(_) => {
+                    return Err(eyre!("Deezer API returned an unknown error: {error}"))
+                }
+            },
+        }
+    }
+    unreachable!("backoff iterator should never end")
+}
+
+/// An extension trait allowing for the use of a custom send method on
+/// [`RequestBuilder`] with postfix syntax.
+#[rocket::async_trait]
+trait RequestBuilderExt {
+    /// Send a request to the Deezer API, returning `None` if the resource was not found.
+    async fn try_deezer_fetch<T: DeserializeOwned + Send>(self) -> Result<Option<T>>;
+
+    /// Send a request to the Deezer API, returning an error if the resource was not found.
+    async fn deezer_fetch<T: DeserializeOwned + Send>(self) -> Result<T>;
+}
+
+#[rocket::async_trait]
+impl RequestBuilderExt for RequestBuilder {
+    async fn try_deezer_fetch<T: DeserializeOwned + Send>(self) -> Result<Option<T>> {
+        send_request(self).await
+    }
+
+    async fn deezer_fetch<T: DeserializeOwned + Send>(self) -> Result<T> {
+        send_request(self)
+            .await
+            .and_then(|data| data.ok_or_else(|| eyre!("requested resource not found")))
+    }
 }
 
 /// Fetch the "chart" (a list of popular tracks) for a given genre.
@@ -24,12 +97,9 @@ pub async fn chart(genre_id: Id) -> Result<Vec<Track>> {
     let url = format!("{API_URL}/chart/{genre_id}/tracks");
     let data: DataWrap<_> = CLIENT
         .get(&url)
-        .send()
+        .deezer_fetch()
         .await
-        .wrap_err("error fetching genre chart")?
-        .json()
-        .await
-        .wrap_err("error deserialising genre chart")?;
+        .wrap_err("error fetching genre chart")?;
     Ok(data.data)
 }
 
@@ -46,12 +116,9 @@ pub async fn genres() -> Result<Vec<Genre>> {
     let url = format!("{API_URL}/genre");
     let genres = CLIENT
         .get(&url)
-        .send()
+        .deezer_fetch::<DataWrap<Vec<Genre>>>()
         .await
         .wrap_err("error fetching genre list")?
-        .json::<DataWrap<Vec<Genre>>>()
-        .await
-        .wrap_err("error deserialising genre list")?
         .data
         .into_iter()
         .filter(|genre| !GENRE_BLACKLIST.contains(&genre.id))
@@ -67,15 +134,11 @@ pub async fn genres() -> Result<Vec<Genre>> {
 /// for another reason.
 pub async fn album(album_id: Id) -> Result<Album> {
     let url = format!("{API_URL}/album/{album_id}");
-    let data = CLIENT
+    CLIENT
         .get(&url)
-        .send()
+        .deezer_fetch()
         .await
-        .wrap_err("error fetching album")?
-        .json()
-        .await
-        .wrap_err("error deserialising album")?;
-    Ok(data)
+        .wrap_err("error fetching album")
 }
 
 /// Search for a track by name or artist.
@@ -84,12 +147,9 @@ pub async fn track_search(q: &str) -> Result<Vec<Track>> {
     let data: DataWrap<_> = CLIENT
         .get(&url)
         .query(&[("q", q)])
-        .send()
+        .deezer_fetch()
         .await
-        .wrap_err("error searching tracks")?
-        .json()
-        .await
-        .wrap_err("error deserialising track search results")?;
+        .wrap_err("error searching tracks")?;
     Ok(data.data)
 }
 
@@ -98,17 +158,14 @@ pub async fn track(id: Id) -> Result<Option<Track>> {
     let url = format!("{API_URL}/track/{id}");
     CLIENT
         .get(&url)
-        .send()
+        .try_deezer_fetch()
         .await
-        .wrap_err("error fetching track")?
-        .json()
-        .await
-        // assume that if we failed to deserialise the track, it was a "not found" response
-        .map_or_else(|_| Ok(None), |track| Ok(Some(track)))
+        .wrap_err("error fetching track")
 }
 
 /// Download a track from Deezer and save it to the music cache.
 pub async fn track_preview(preview_url: &str) -> Result<Bytes> {
+    // This isn't an API request so hopefully should be fine without ratelimiting.
     CLIENT
         .get(preview_url)
         .send()
@@ -132,6 +189,62 @@ impl<T> std::ops::Deref for DataWrap<T> {
 
     fn deref(&self) -> &Self::Target {
         &self.data
+    }
+}
+
+/// A response from Deezer which may be an error.
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum Response<T> {
+    /// A successful response.
+    Data(T),
+    /// An error response.
+    Error {
+        /// The error object.
+        error: Error,
+    },
+}
+
+/// An error returned by the API.
+#[derive(Debug, Deserialize)]
+pub struct Error {
+    /// The error "type".
+    #[serde(rename = "type")]
+    kind: String,
+    /// The error message.
+    message: String,
+    /// The error code.
+    code: ErrorCode,
+}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{} ({:?}): {}", self.kind, self.code, self.message)
+    }
+}
+
+/// An error code from an API error.
+#[derive(Debug, Deserialize)]
+pub enum ErrorCode {
+    /// We have exceeded the request quota.
+    Ratelimited,
+    /// The service is busy and we should try again later.
+    ServiceBusy,
+    /// The requested resource was not found.
+    NotFound,
+    /// Other error codes exist, but we treat them all as unresolvable issues.
+    Unknown(u32),
+}
+
+impl From<u32> for ErrorCode {
+    fn from(code: u32) -> Self {
+        // https://developers.deezer.com/api/errors
+        match code {
+            4 => Self::Ratelimited,
+            700 => Self::ServiceBusy,
+            800 => Self::NotFound,
+            code => Self::Unknown(code),
+        }
     }
 }
 

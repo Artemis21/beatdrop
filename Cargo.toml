@@ -23,6 +23,7 @@ rocket_db_pools = { version = "0.1.0", features = ["sqlx_postgres"] }
 serde = { version = "1.0.193", features = ["derive"] }
 sha2 = "0.10.8"
 sqlx = { version = "0.7.2", features = ["macros", "migrate", "chrono", "postgres", "runtime-tokio"], default-features = false }
+tokio = { version = "1.36.0", features = ["sync"] }
 
 [profile.dev.package.sqlx-macros]
 # building the proc macros with optimisations speeds up their execution at compile time

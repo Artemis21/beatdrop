@@ -189,6 +189,7 @@ dependencies = [
  "serde",
  "sha2",
  "sqlx",
+ "tokio",
 ]
 
 [[package]]
