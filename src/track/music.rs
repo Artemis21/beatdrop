@@ -1,7 +1,7 @@
 //! A cache system for storing preview MP3s from Deezer, and retrieving clips from them.
 use std::{ops::Range, sync::OnceLock};
 
-use eyre::{Context, OptionExt, Result};
+use eyre::{Context, Result};
 use rocket::tokio::{fs, task};
 
 use crate::deezer;
@@ -51,7 +51,12 @@ fn blocking_save_track(path: std::path::PathBuf, mp3_data: &[u8]) -> Result<()> 
     let mut writer = hound::WavWriter::new(std::io::BufWriter::new(file), wav_spec)
         .wrap_err("error creating a WAV writer")?;
     let mut maybe_frame = Ok(first_frame);
-    while let Ok(frame) = maybe_frame {
+    loop {
+        let frame = match maybe_frame {
+            Ok(frame) => frame,
+            Err(minimp3::Error::Eof) => return writer.finalize().map_err(Into::into),
+            Err(err) => return Err(err.into()),
+        };
         for sample in frame.data {
             writer
                 .write_sample(sample)
@@ -59,12 +64,6 @@ fn blocking_save_track(path: std::path::PathBuf, mp3_data: &[u8]) -> Result<()> 
         }
         maybe_frame = decoder.next_frame();
     }
-    match maybe_frame.expect_err("we looped until it was an error") {
-        minimp3::Error::Eof => (),
-        err => Err(err).wrap_err("error decoding an MP3")?,
-    }
-    writer.finalize()?;
-    Ok(())
 }
 
 /// Download a track from Deezer and save it to the music cache.
@@ -103,34 +102,25 @@ fn blocking_clip_track(path: std::path::PathBuf, time: Range<chrono::Duration>) 
     let mut buf = Vec::new();
     let cursor = std::io::Cursor::new(&mut buf);
     let mut writer = hound::WavWriter::new(cursor, spec).wrap_err("error creating a WAV writer")?;
-    let samples_to_read = spec.sample_rate * length / 1000;
+    assert_eq!(spec.channels, 2, "Deezer should return stereo music");
+    let sample_rate = usize::try_from(spec.sample_rate).expect("sample rate should fit in usize");
+    let samples_to_read = usize::from(spec.channels)
+        * sample_rate
+        * usize::try_from(length).expect("length in ms should fit in usize")
+        / 1000;
     let mut samples_read = 0;
-    for _ in 0..samples_to_read {
-        let Some(left) = reader
-            .samples::<i16>()
-            .next()
-            .transpose()
-            .wrap_err("could not read sample from track")?
-        else {
-            break;
-        };
-        let right = reader
-            .samples::<i16>()
-            .next()
-            .ok_or_eyre("expected a right sample after a left sample")?
-            .wrap_err("could not read sample from track")?;
+    for sample in reader.samples::<i16>().take(samples_to_read) {
+        let sample = sample.wrap_err("could not read sample from track")?;
         writer
-            .write_sample(left)
-            .wrap_err("error writing a (left) sample to a WAV file")?;
-        writer
-            .write_sample(right)
-            .wrap_err("error writing a (right) sample to a WAV file")?;
+            .write_sample(sample)
+            .wrap_err("error writing a sample to a WAV file")?;
         samples_read += 1;
     }
     // the length of the preview should be 30 seconds, but sometimes it's a little under
     let remaining_samples = samples_to_read - samples_read;
-    if remaining_samples > spec.sample_rate / 2 {
+    if remaining_samples > sample_rate {
         // if it's more than half a second under, error
+        // (`remaining_samples` is doubled because we're counting individual values from stereo music)
         Err(eyre::eyre!(
             "could not read enough samples from track ({} < {})",
             samples_read,
@@ -141,10 +131,7 @@ fn blocking_clip_track(path: std::path::PathBuf, time: Range<chrono::Duration>) 
         for _ in 0..remaining_samples {
             writer
                 .write_sample(0)
-                .wrap_err("error writing (left) padding to a WAV file")?;
-            writer
-                .write_sample(0)
-                .wrap_err("error writing (right) padding to a WAV file")?;
+                .wrap_err("error writing padding to a WAV file")?;
         }
     }
     writer.finalize()?;

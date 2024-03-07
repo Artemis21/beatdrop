@@ -153,7 +153,7 @@ pub async fn track_search(q: &str) -> Result<Vec<Track>> {
     Ok(data.data)
 }
 
-/// Fetch a track by ID, returning None if we could not deserialise the response (eg. not found).
+/// Fetch a track by ID, returning None if it was not found.
 pub async fn track(id: Id) -> Result<Option<Track>> {
     let url = format!("{API_URL}/track/{id}");
     CLIENT
