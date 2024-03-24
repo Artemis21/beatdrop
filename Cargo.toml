@@ -11,20 +11,18 @@ config = { version = "0.13.4", features = ["toml"], default-features = false }
 constant_time_eq = "0.3.0"
 duration-string = { version = "0.3.0", features = ["serde"] }
 eyre = "0.6.11"
+futures = "0.3.30"
 hmac = "0.12.1"
 hound = "3.5.1"
 jwt = "0.16.0"
 lazy_static = "1.4.0"
-minimp3 = "0.5.1"
+minimp3 = { version = "0.5.1", features = ["async_tokio"] }
 rand = { version = "0.8.5", features = ["std_rng"], default-features = false }
-reqwest = { version = "0.11.22", features = ["json", "default-tls"], default-features = false }
+reqwest = { version = "0.11.22", features = ["json", "default-tls", "stream"], default-features = false }
 rocket = { version = "0.5.0", features = ["json"] }
 rocket_db_pools = { version = "0.1.0", features = ["sqlx_postgres"] }
 serde = { version = "1.0.193", features = ["derive"] }
 sha2 = "0.10.8"
 sqlx = { version = "0.7.2", features = ["macros", "migrate", "chrono", "postgres", "runtime-tokio"], default-features = false }
 tokio = { version = "1.36.0", features = ["sync"] }
-
-[profile.dev.package.sqlx-macros]
-# building the proc macros with optimisations speeds up their execution at compile time
-opt-level = 3
+tokio-util = { version = "0.7.10", features = ["io"] }

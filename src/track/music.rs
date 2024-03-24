@@ -2,7 +2,9 @@
 use std::{ops::Range, sync::OnceLock};
 
 use eyre::{Context, Result};
-use rocket::tokio::{fs, task};
+use futures::Stream;
+use rocket::{http::hyper::body::Bytes, tokio::{fs, task}};
+use futures::TryStreamExt;
 
 use crate::deezer;
 
@@ -35,11 +37,13 @@ impl From<&crate::Config> for Config {
     }
 }
 
-/// Transcode a downloaded track from MP3 to WAV, and save it (blocking).
-fn blocking_save_track(path: std::path::PathBuf, mp3_data: &[u8]) -> Result<()> {
-    let mut decoder = minimp3::Decoder::new(std::io::Cursor::new(mp3_data));
+/// Transcode a downloaded track from MP3 to WAV, and save it.
+async fn save_track(path: std::path::PathBuf, mp3_stream: impl Stream<Item = Result<Bytes>> + Send) -> Result<()> {
+    let mp3_read = Box::pin(tokio_util::io::StreamReader::new(mp3_stream.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))));
+    let mut decoder = minimp3::Decoder::new(mp3_read);
     let first_frame = decoder
-        .next_frame()
+        .next_frame_future()
+        .await
         .wrap_err("error reading first frame of MP3")?;
     let wav_spec = hound::WavSpec {
         channels: u16::try_from(first_frame.channels).wrap_err("invalid channel count")?,
@@ -62,7 +66,7 @@ fn blocking_save_track(path: std::path::PathBuf, mp3_data: &[u8]) -> Result<()> 
                 .write_sample(sample)
                 .wrap_err("error writing a sample to a WAV file")?;
         }
-        maybe_frame = decoder.next_frame();
+        maybe_frame = decoder.next_frame_future().await;
     }
 }
 
@@ -70,7 +74,7 @@ fn blocking_save_track(path: std::path::PathBuf, mp3_data: &[u8]) -> Result<()> 
 async fn download_track(config: &Config, track_id: u32, preview: &str) -> Result<()> {
     let data = deezer::track_preview(preview).await?;
     let path = config.music_dir.join(format!("{track_id}.mp3"));
-    task::spawn_blocking(move || blocking_save_track(path, &data)).await?
+    save_track(path, data).await
 }
 
 /// Ensure that a given track is cached, and return the path.

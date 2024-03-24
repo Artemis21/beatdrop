@@ -7,6 +7,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 // We don't actually use Rocket here, but Reqwest also uses this `Bytes` type and doesn't re-export it.
 use crate::ratelimit::{Backoff, Ratelimit};
 use rocket::http::hyper::body::Bytes;
+use futures::{Stream, StreamExt};
 
 /// Base URL for the API.
 const API_URL: &str = "https://api.deezer.com";
@@ -164,16 +165,16 @@ pub async fn track(id: Id) -> Result<Option<Track>> {
 }
 
 /// Download a track from Deezer and save it to the music cache.
-pub async fn track_preview(preview_url: &str) -> Result<Bytes> {
+pub async fn track_preview(preview_url: &str) -> Result<impl Stream<Item = Result<Bytes>>> {
     // This isn't an API request so hopefully should be fine without ratelimiting.
-    CLIENT
+    let response = CLIENT
         .get(preview_url)
         .send()
         .await
-        .wrap_err("error downloading a track preview")?
-        .bytes()
-        .await
-        .wrap_err("error reading the response for a track preview download")
+        .wrap_err("error downloading a track preview")?;
+    Ok(response
+        .bytes_stream()
+        .map(|chunk| chunk.wrap_err("error downloading track preview chunk")))
 }
 
 /// A helper for serde deserialisation of API responses which are wrapped in
@@ -224,7 +225,7 @@ impl std::fmt::Display for Error {
 }
 
 /// An error code from an API error.
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 pub enum ErrorCode {
     /// We have exceeded the request quota.
     Ratelimited,
@@ -236,15 +237,19 @@ pub enum ErrorCode {
     Unknown(u32),
 }
 
-impl From<u32> for ErrorCode {
-    fn from(code: u32) -> Self {
+impl<'d> serde::Deserialize<'d> for ErrorCode {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'d>,
+    {
         // https://developers.deezer.com/api/errors
-        match code {
+        let code = match u32::deserialize(deserializer)? {
             4 => Self::Ratelimited,
             700 => Self::ServiceBusy,
             800 => Self::NotFound,
             code => Self::Unknown(code),
-        }
+        };
+        Ok(code)
     }
 }
 
