@@ -11,7 +11,7 @@ export function Resign({ gameId }: { gameId: number }) {
         }
     };
     return (
-        <button className={className} onClick={onClick}>
+        <button className={className} onClick={onClick} type="button">
             Give Up
         </button>
     );
