@@ -73,7 +73,7 @@ async fn save_track(path: std::path::PathBuf, mp3_stream: impl Stream<Item = Res
 /// Download a track from Deezer and save it to the music cache.
 async fn download_track(config: &Config, track_id: u32, preview: &str) -> Result<()> {
     let data = deezer::track_preview(preview).await?;
-    let path = config.music_dir.join(format!("{track_id}.mp3"));
+    let path = config.music_dir.join(format!("{track_id}.wav"));
     save_track(path, data).await
 }
 
@@ -82,7 +82,7 @@ async fn ensure_cached(track_id: u32, preview: &str) -> Result<std::path::PathBu
     let config = CONFIG
         .get()
         .expect("music system used before initialisation");
-    let path = config.music_dir.join(format!("{track_id}.mp3"));
+    let path = config.music_dir.join(format!("{track_id}.wav"));
     if !fs::try_exists(&path)
         .await
         .wrap_err("error checking if a track is cached")?
