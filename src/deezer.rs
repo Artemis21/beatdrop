@@ -6,8 +6,8 @@ use reqwest::RequestBuilder;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 // We don't actually use Rocket here, but Reqwest also uses this `Bytes` type and doesn't re-export it.
 use crate::ratelimit::{Backoff, Ratelimit};
-use rocket::http::hyper::body::Bytes;
 use futures::{Stream, StreamExt};
+use rocket::http::hyper::body::Bytes;
 
 /// Base URL for the API.
 const API_URL: &str = "https://api.deezer.com";

@@ -3,8 +3,11 @@ use std::{ops::Range, sync::OnceLock};
 
 use eyre::{Context, Result};
 use futures::Stream;
-use rocket::{http::hyper::body::Bytes, tokio::{fs, task}};
 use futures::TryStreamExt;
+use rocket::{
+    http::hyper::body::Bytes,
+    tokio::{fs, task},
+};
 
 use crate::deezer;
 
@@ -38,8 +41,13 @@ impl From<&crate::Config> for Config {
 }
 
 /// Transcode a downloaded track from MP3 to WAV, and save it.
-async fn save_track(path: std::path::PathBuf, mp3_stream: impl Stream<Item = Result<Bytes>> + Send) -> Result<()> {
-    let mp3_read = Box::pin(tokio_util::io::StreamReader::new(mp3_stream.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))));
+async fn save_track(
+    path: std::path::PathBuf,
+    mp3_stream: impl Stream<Item = Result<Bytes>> + Send,
+) -> Result<()> {
+    let mp3_read = Box::pin(tokio_util::io::StreamReader::new(
+        mp3_stream.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e)),
+    ));
     let mut decoder = minimp3::Decoder::new(mp3_read);
     let first_frame = decoder
         .next_frame_future()
