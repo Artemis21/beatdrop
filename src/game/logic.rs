@@ -6,7 +6,11 @@ use serde::Serialize;
 
 /// Utility to construct a `chrono::Duration` from a number of seconds in a constant context.
 const fn seconds(n: i64) -> chrono::Duration {
-    chrono::Duration::milliseconds(n * 1000)
+    match chrono::Duration::try_milliseconds(n * 1000) {
+        Some(duration) => duration,
+        // unwrap/expect not yet const
+        _ => panic!("duration should be in range")
+    }
 }
 
 /// Game constants. This is generic over the maximum number of guesses, to
