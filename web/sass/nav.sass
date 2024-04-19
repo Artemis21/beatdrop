@@ -17,8 +17,20 @@
     text-decoration: none
     cursor: pointer
 
-.nav__button:focus-visible
-    @include focus
+.nav__button
+    position: relative
+
+    &:focus-visible
+        @include focus
+
+.nav__button__badge
+    background-color: $danger-fg
+    width: 0.7rem
+    height: 0.7rem
+    border-radius: 50%
+    position: absolute
+    top: -0.3rem
+    right: 0
 
 .nav__icon
     font-size: 1.5rem
