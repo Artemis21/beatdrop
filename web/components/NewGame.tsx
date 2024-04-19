@@ -120,7 +120,7 @@ export function Genre({
     return (
         <Card
             title={genre.name}
-            image={{ src: `${genre.picture}?size=xl`, alt: "" }}  // no alt since title is there
+            image={{ src: `${genre.picture}?size=xl`, alt: "" }} // no alt since title is there
             onClick={() => (active ? setActiveGenre(null) : setActiveGenre(genre))}
             active={active}
         />
