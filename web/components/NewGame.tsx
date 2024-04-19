@@ -6,6 +6,7 @@ import { Error, Loading } from "./Placeholder";
 import { Scrollable } from "./Scrollable";
 import { GameType } from "./GameType";
 import { RefObject, useRef, useState } from "react";
+import { faDice } from "@fortawesome/free-solid-svg-icons";
 import { Card } from "./Card";
 
 export function NewGame() {
@@ -20,6 +21,10 @@ export function NewGame() {
     const genres = data.genres.filter(
         g => g.id === genre?.id || g.name.toLowerCase().includes(filter.toLowerCase()),
     );
+    const onSetGenre = (genre: Genre | null) => {
+        setGenre(genre);
+        inputEl.current?.focus();
+    };
     return (
         <>
             <h1 className="title">New Game</h1>
@@ -27,7 +32,7 @@ export function NewGame() {
                 <GameType game={{ isDaily: false, isTimed: timed, genre }} />
             </h2>
             <label htmlFor="genre_search" className="sub">
-                Pick a genre, or leave blank to select randomly
+                Pick a genre or leave to select randomly
             </label>
             <form className="form_row" onSubmit={e => e.preventDefault()}>
                 <Filter
@@ -41,16 +46,14 @@ export function NewGame() {
             </form>
             <Scrollable>
                 <div className="card_stack">
+                    <Genre genre={null} activeGenre={genre} setActiveGenre={onSetGenre} />
                     {genres.map(g => {
                         return (
                             <Genre
                                 key={g.id}
                                 genre={g}
                                 activeGenre={genre}
-                                setActiveGenre={genre => {
-                                    setGenre(genre);
-                                    inputEl.current?.focus();
-                                }}
+                                setActiveGenre={onSetGenre}
                             />
                         );
                     })}
@@ -114,13 +117,14 @@ export function Genre({
 }: {
     activeGenre: Genre | null;
     setActiveGenre: (_: Genre | null) => void;
-    genre: Genre;
+    genre: Genre | null;
 }) {
-    const active = genre.id === activeGenre?.id;
+    const active = genre?.id === activeGenre?.id;
     return (
         <Card
-            title={genre.name}
-            image={{ src: `${genre.picture}?size=xl`, alt: "" }} // no alt since title is there
+            title={genre?.name ?? "Random"}
+            image={genre && { src: `${genre.picture}?size=xl`, alt: "" }} // no alt since title is there
+            icon={!genre && faDice}
             onClick={() => (active ? setActiveGenre(null) : setActiveGenre(genre))}
             active={active}
         />
