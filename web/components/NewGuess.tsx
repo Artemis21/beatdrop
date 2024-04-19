@@ -43,7 +43,6 @@ export function NewGuess({
                             query={guess.query}
                             setGuess={guess => {
                                 setGuess(guess);
-                                console.log(inputEl.current);
                                 inputEl.current?.focus();
                             }}
                         />
