@@ -33,13 +33,15 @@ export function GameType({
     }
     return (
         <span className={`game_type ${className}`}>
-            <FontAwesomeIcon icon={icon} className="game_type__icon" />
-            {name}
+            <span className="game_type">
+                <FontAwesomeIcon icon={icon} className="game_type__icon" />
+                {name}
+            </span>
             {genre && (
-                <>
+                    <span className="game_type">
                     <FontAwesomeIcon icon={faMusic} className="game_type__icon" />
                     {genre.name}
-                </>
+                    </span>
             )}
         </span>
     );

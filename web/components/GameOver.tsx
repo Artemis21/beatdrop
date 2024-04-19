@@ -29,7 +29,7 @@ export function GameOver({ game }: { game: Game }) {
         outcome = (
             <Card
                 icon={faCrown}
-                title={<>You won!&ensp;&bull;&ensp;{type}</>}
+                title={<>You won! &ndash; {type}</>}
                 // prettier-ignore
                 details={<>You took <b>{guesses.length} {guessPlural}</b> - {comment}</>}
                 good
@@ -39,7 +39,7 @@ export function GameOver({ game }: { game: Game }) {
         outcome = (
             <Card
                 icon={faHeartCrack}
-                title={<>You Lost&ensp;&bull;&ensp;{type}</>}
+                title={<>You Lost &ndash; {type}</>}
                 details="But you discovered a new song!"
                 bad
             />
