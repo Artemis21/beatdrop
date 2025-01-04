@@ -6,9 +6,9 @@
     "parameters": {
       "Left": [
         "Int4",
-        "Varchar",
-        "Varchar",
-        "Varchar",
+        "Text",
+        "Text",
+        "Text",
         "Int4",
         "Int4",
         "Int4"

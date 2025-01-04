@@ -8,6 +8,7 @@ use rocket::{
     http::hyper::body::Bytes,
     tokio::{fs, task},
 };
+use minimp3_fixed as minimp3;
 
 use crate::deezer;
 

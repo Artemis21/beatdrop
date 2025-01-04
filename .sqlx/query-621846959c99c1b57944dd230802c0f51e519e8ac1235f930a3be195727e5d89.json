@@ -6,7 +6,7 @@
       {
         "ordinal": 0,
         "name": "preview_url",
-        "type_info": "Varchar"
+        "type_info": "Text"
       }
     ],
     "parameters": {

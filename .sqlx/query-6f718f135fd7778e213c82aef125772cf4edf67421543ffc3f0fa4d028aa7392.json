@@ -11,27 +11,27 @@
       {
         "ordinal": 1,
         "name": "title",
-        "type_info": "Varchar"
+        "type_info": "Text"
       },
       {
         "ordinal": 2,
         "name": "link",
-        "type_info": "Varchar"
+        "type_info": "Text"
       },
       {
         "ordinal": 3,
         "name": "artist_name",
-        "type_info": "Varchar"
+        "type_info": "Text"
       },
       {
         "ordinal": 4,
         "name": "album_title",
-        "type_info": "Varchar"
+        "type_info": "Text"
       },
       {
         "ordinal": 5,
         "name": "album_cover",
-        "type_info": "Varchar"
+        "type_info": "Text"
       }
     ],
     "parameters": {
