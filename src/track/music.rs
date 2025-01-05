@@ -4,11 +4,11 @@ use std::{ops::Range, sync::OnceLock};
 use eyre::{Context, Result};
 use futures::Stream;
 use futures::TryStreamExt;
+use minimp3_fixed as minimp3;
 use rocket::{
     http::hyper::body::Bytes,
     tokio::{fs, task},
 };
-use minimp3_fixed as minimp3;
 
 use crate::deezer;
 

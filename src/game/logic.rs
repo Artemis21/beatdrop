@@ -9,7 +9,7 @@ const fn seconds(n: i64) -> chrono::Duration {
     match chrono::Duration::try_milliseconds(n * 1000) {
         Some(duration) => duration,
         // unwrap/expect not yet const
-        _ => panic!("duration should be in range")
+        _ => panic!("duration should be in range"),
     }
 }
 

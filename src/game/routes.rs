@@ -182,7 +182,8 @@ async fn get_clip(
 ) -> Result<(ContentType, Vec<u8>), ApiError> {
     let game = auth.game(&mut tx, id).await?;
     let end = game.time_unlocked();
-    let start = chrono::Duration::try_milliseconds(seek.unwrap_or(0).into()).expect("clip start time should be in range");
+    let start = chrono::Duration::try_milliseconds(seek.unwrap_or(0).into())
+        .expect("clip start time should be in range");
     if start >= end {
         return Err(ApiError::forbidden(
             "cannot seek past end of unlocked music",
