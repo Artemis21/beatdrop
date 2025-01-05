@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT track.id FROM track\n            LEFT JOIN game ON track.id = game.track_id AND game.account_id = $1\n            ORDER BY\n                game.started_at ASC NULLS FIRST,\n                RANDOM() * track.deezer_rank DESC\n            LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "24d2824ef2379fdc8f9a090223fb53e29cc0216b9f1de125178376569766ea4b"
+}

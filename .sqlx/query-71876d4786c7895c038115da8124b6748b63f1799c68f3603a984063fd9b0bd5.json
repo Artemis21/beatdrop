@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT track.id FROM track\n            INNER JOIN album ON track.album_id = album.id\n            INNER JOIN album_genre ON album.id = album_genre.album_id\n            LEFT JOIN game ON track.id = game.track_id AND game.account_id = $2\n            WHERE album_genre.genre_id = $1\n            ORDER BY\n                game.started_at ASC NULLS FIRST,\n                RANDOM() * track.deezer_rank DESC\n            LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "71876d4786c7895c038115da8124b6748b63f1799c68f3603a984063fd9b0bd5"
+}
