@@ -11,7 +11,6 @@ static DB_POOL: OnceLock<database::Main> = OnceLock::new();
 
 /// Spawn a task to take care of running periodic background tasks.
 pub async fn spawn(rocket: rocket::Rocket<rocket::Build>) -> rocket::fairing::Result {
-    println!("here");
     let Some(db) = database::Main::fetch(&rocket) else {
         eprintln!("couldn't retrieve db pool to set up background tasks");
         return Err(rocket);
@@ -72,11 +71,9 @@ async fn db_conn() -> Result<sqlx::pool::PoolConnection<sqlx::Postgres>> {
 /// and also ensures that the database is populated with tracks and related data for
 /// other tasks.
 async fn ensure_daily_chosen() -> Result<()> {
-    println!("here....");
     track::pick::daily(&mut *db_conn().await?)
         .await
         .wrap_err("error picking a daily track as a background task")?;
-    println!("done!");
     Ok(())
 }
 
